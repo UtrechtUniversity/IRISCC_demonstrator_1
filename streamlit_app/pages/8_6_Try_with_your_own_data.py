@@ -7,7 +7,10 @@ from pathlib import Path
 import folium
 from streamlit_folium import st_folium
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 st.title("Try your own cohort")
+st.set_page_config(page_title="6. Try with Your Own Data", layout="wide")
 
 st.markdown("""
 Now it's your turn! You can upload your own spatial dataset containing participant locations. Then we'll repeat the exposure linking process using your data.
@@ -115,13 +118,13 @@ st.session_state["cohort_mode"] = mode
 # PRE-MADE COHORTS (replace with your real datasets)
 # -----------------------------------------------------------------------------
 @st.cache_data
-def load_prebuilt_a():
+def load_prebuilt_belgium():
     # placeholder example
-    return gpd.read_file("data/cohort_a.gpkg")
+    return gpd.read_file(BASE_DIR / "Resources" / "belgium_subjects.gpkg")
 
 @st.cache_data
-def load_prebuilt_b():
-    return gpd.read_file("data/cohort_b.gpkg")
+def load_prebuilt_berlin():
+    return gpd.read_file(BASE_DIR / "Resources" / "berlin_subjects.gpkg")
 
 
 gdf = None
@@ -150,10 +153,10 @@ if mode == "Upload my own data":
 # Pre-made cohorts
 # -----------------------------------------------------------------------------
 elif mode == "Belgium cohort":
-    gdf = validate_gdf(load_prebuilt_a())
+    gdf = validate_gdf(load_prebuilt_belgium())
 
 elif mode == "Berlin cohort":
-    gdf = validate_gdf(load_prebuilt_b())
+    gdf = validate_gdf(load_prebuilt_berlin())
 
 
 # -----------------------------------------------------------------------------

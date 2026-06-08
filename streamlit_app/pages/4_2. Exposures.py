@@ -1,5 +1,6 @@
 import streamlit as st
 from pathlib import Path
+st.set_page_config(page_title="2. Exposures", layout="wide")
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -14,11 +15,10 @@ st.markdown("""
             Platform (https://exposome.uu.nl/). 
             
             For this demonstrator, we will consider the following datasets from the Exposome Maps Platform.
-            Select the ones you want to work with in the next steps. You can select as many as you like.
-            
             Notice that the datasets have different spatial and temporal resolutions. This will affect how you can link them to your cohort data and the types of analyses you can perform.
             """)
 
+st.info("Select the datasets you want to work with in the next steps. You can select as many as you like.")
 
 # -----------------------------------------------------------------------------
 # Session state
@@ -74,16 +74,16 @@ with col1:
 
         with st.container():
 
-            col_text, col_btn = st.columns([5, 1])
+            col_text, col_btn = st.columns([7, 1])
 
             with col_text:
                 st.markdown(
                     f"""
                     <div style="
-                        border: 1px solid {'#4CAF50' if selected else '#ddd'};
+                        border: 1px solid {'#2196F3' if selected else '#ddd'};
                         border-radius: 10px;
                         padding: 10px;
-                        background-color: {'#f0fff4' if selected else 'white'};
+                        background-color: {'#f0f8ff' if selected else 'white'};
                     ">
                         <strong>{name}</strong><br>
                         <span style="color: gray; font-size: 0.85em;">
@@ -115,7 +115,7 @@ with col2:
 
         with st.container():
 
-            col_text, col_btn = st.columns([5, 1])
+            col_text, col_btn = st.columns([7, 1])
 
             with col_text:
                 st.markdown(
@@ -157,7 +157,7 @@ with col_a:
         for d in st.session_state["exposure_selection"]:
             st.write("•", d)
     else:
-        st.info("None selected")
+        st.warning("None selected")
 
 with col_b:
     st.subheader("Selected weather datasets")
@@ -165,4 +165,4 @@ with col_b:
         for d in st.session_state["weather_selection"]:
             st.write("•", d)
     else:
-        st.info("None selected")
+        st.warning("None selected")

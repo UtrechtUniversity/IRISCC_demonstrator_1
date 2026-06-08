@@ -9,7 +9,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# from ..utils.iriscc_utils import dataframe_to_html, safe_read_geopackage
+st.set_page_config(page_title="1. Cohort", layout="wide")
 
 st.title("Step 1 — Cohort data")
 
@@ -20,9 +20,7 @@ Each one has a residential address and a fictional health outcome. In practice, 
 The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich.
 '''
 
-'''
-Press the button to load and see the sample cohort data.
-'''
+st.info("Press the button to load and see the sample cohort data.")
 
 
 if st.button("Load sample cohort data"):
