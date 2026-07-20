@@ -1,4 +1,7 @@
 import streamlit as st
+from utils.iriscc_utils import apply_app_style
+
+apply_app_style()
 
 st.title("References")
 

@@ -6,11 +6,14 @@ import zipfile
 from pathlib import Path
 import folium
 from streamlit_folium import st_folium
+from utils.iriscc_utils import apply_app_style
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-st.title("Try your own cohort")
 st.set_page_config(page_title="6. Try with Your Own Data", layout="wide")
+apply_app_style()
+
+st.title("Try your own cohort")
 
 st.markdown("""
 Now it's your turn! You can upload your own spatial dataset containing participant locations. Then we'll repeat the exposure linking process using your data.
@@ -26,6 +29,8 @@ Supported formats:
 
 If you don't have your own data, you can also select from two pre-made large cohorts. 
 """)
+
+st.warning("This is an unsecure demonstrator. When uploading read addresses, never upload real health data. Only use synthetic data or anonymized datasets, and make sure to comply with your local data protection regulations. Relate environemental exposures to health data only in a secure environment.")
 
 # -----------------------------------------------------------------------------
 # Session state

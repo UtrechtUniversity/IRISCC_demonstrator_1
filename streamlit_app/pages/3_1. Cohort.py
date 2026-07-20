@@ -6,25 +6,32 @@ import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 from pathlib import Path
+from utils.iriscc_utils import apply_app_style
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 st.set_page_config(page_title="1. Cohort", layout="wide")
+apply_app_style()
 
 st.title("Step 1 — Cohort data")
 
-'''
-Analysis begins with a cohort of individuals. In the demonstrator, we use a synthetic dataset of 20 subjects.
-Each one has a residential address and a fictional health outcome. In practice, this could be any address-level health data you have access to, such as medical records or measurements.
+st.markdown(
+    '''
+    Analysis begins with a cohort of individuals, who may be recurited for a particular study, found in an existing cohort, or selected from a dataset of population health data. Each subject in the cohort is defined with a unique Subject ID and some spatial information. Often this is their residential address, but it could also be a workplace, school, or a bigger unit such as a postal code. The spatial information is used to link the subject to environmental exposures and other data.
 
-The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich.
-'''
+    In the demonstrator, we use a synthetic dataset of 20 subjects called *cardiovascularCohort*. 
+    Each subject has a fictional cardiovascular score that represents their normalized risk level for developing Cardiovascular diseases (CVDs) based on health and genetic factors measured in 2023. In practice, this could be any health data you're interested in, such as medical records or measurements.
+    To explore the role of the exposome in CVDs, we will link the cohort to environmental exposures.
 
-st.info("Press the button to load and see the sample cohort data.")
+    The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich. We've already used a geocoding service to convert their street addresses into geographic coordinates (latitude and longitude). All of the data has been entered into a CSV file.
+    
+    Start by pressing the button to load in the sample cohort data as a table.
+    '''
+)
 
 
 if st.button("Load sample cohort data"):
-    path = BASE_DIR / "Resources" / "europe_5_cities_subjects.gpkg"
+    path = BASE_DIR / "Resources" / "cardiovascularCohort.gpkg"
     location_gdf = gpd.read_file(path)
 
     # Reorder columns
@@ -37,7 +44,7 @@ if st.button("Load sample cohort data"):
     st.dataframe(location_gdf, hide_index=True)
 
 '''
-Now press the button to visualize the locations on a map.
+Now press the button to visualize the address locations on a map.
 '''
 
 if st.button("Visualize sample cohort data"):
@@ -147,7 +154,7 @@ if st.session_state["show_map"]:
                 radius=4,
                 fill=True,
                 fill_opacity=0.8,
-                popup=str(row.get("City", ""))
+                popup=str(row.get("Cardiovascular_Score", ""))
             ).add_to(m)
 
         st_folium(

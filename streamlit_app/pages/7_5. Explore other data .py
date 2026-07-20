@@ -1,20 +1,19 @@
 import streamlit as st
 from beacon_api import *
+from utils.iriscc_utils import apply_app_style
 client = Client("https://beacon-iriscc.maris.nl")
+
+apply_app_style()
 
 '''
 This is where linking to ACTIS data is done
 '''
-
-st.set_page_config(page_title="5. Explore Other Datasets", layout="wide")
-
-
 def fetch_exposure():
 
     tables = client.list_tables()
 
     return (
-        tables['iagos-l2']
+        tables['actris-nrt']
         .query()
         .add_select_column("x")
         .add_select_column("y")
@@ -25,8 +24,7 @@ def fetch_exposure():
     )
 
 
-# tables = client.list_tables()
-# tables
+tables = client.list_tables()
+tables
 
-# result = fetch_exposure()
-# result.head()
+result = fetch_exposure()
