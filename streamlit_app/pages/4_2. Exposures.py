@@ -279,7 +279,7 @@ st.markdown("---")
 col_a, col_b = st.columns(2)
 
 with col_a:
-    st.subheader("Selected exposures")
+    st.subheader("Selected air quality datasets")
     if st.session_state["exposure_selection"]:
         for d in st.session_state["exposure_selection"]:
             st.write("•", d)

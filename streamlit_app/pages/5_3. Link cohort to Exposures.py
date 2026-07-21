@@ -3,29 +3,49 @@ import streamlit as st
 from beacon_api import *
 import geopandas as gpd
 from utils.iriscc_utils import apply_app_style
+from scripts.raster_extraction import extract_values
+
 st.set_page_config(page_title="3. Link Locations to Exposure Data", layout="wide")
 apply_app_style()
 
-st.title("Step 3 — Link Locations to Exposure Data")
+st.title("Step 3 — Link cohort to exposures")
 
 st.markdown("""
-            Now that we have our cohort data and exposure datasets, we can link them together. 
+            Now we can programmatically link the addresses in the cohort dataset to the exposure datasets.
+
+            As seen in the previous pages, locations are represented as points, and exposure datasets are represented as surfaces. In terms of data models, these are examples of a vector and a raster dataset, respectively.
+            When a point is placed on a surface, we can extract the value at that point. 
             
-            This involves matching the residential locations of our subjects to the corresponding air quality and weather data at those locations. 
-            
-            The process can be complex due to differences in spatial and temporal resolution between datasets, but it is crucial for analyzing how environmental exposures affect health outcomes.
+            The process can be complex due to differences in spatial and temporal resolution between datasets. If a raster dataset has a spatial resolution of 100 meters, it means that each pixel represents 100 meters on the ground.
+            Therefore, two points that are within this pixel will be assigned the same value, even though in reality they're far away.
             """)
 
-st.write("This page will run a simplified linking process if Resources files are present.")
 
-run = st.button("Run linking (simplified)")
+run = st.button("Run linking procedure")
 
 
 code_expander = st.expander("Want to see the code used in the linking process?")
 
 
 if run:
-    st.write()
+    input_file = "streamlit_app/Resources/cardiovascularCohort.gpkg"
+    raster_folder = "streamlit_app/Resources/exposure_datasets"
+    rasters_list = st.session_state.get("exposure_selection") + st.session_state.get("weather_selection")
+    raster_crs = 3857
+    linked_df = extract_values(input_file, raster_folder, rasters_list, raster_crs)
+    st.dataframe(linked_df, hide_index=True)
+
+    # exposure_to_filename = {
+    #     "Annual PM10": "TEMP_AVG_20201201.tif"
+    # }
+
+    # What do I want ot happen? I want to go back to being the awesome productive and hardworking developer that I once was. Use those practices. Be less tired and lazy.
+    # Okay, what do I need to do now? I need to create the linking process first, and make sure it works.
+    # Then I need to select the variables.
+    # Then I need to download them for each country, and do the merging. 
+    # First, making sure that the linking process works well is the most critical and brain thing.
+
+
 
 
 # if run:

@@ -7,3 +7,4 @@ folium
 streamlit
 streamlit_folium
 beacon_api
+rasterio
