@@ -1,11 +1,10 @@
 [theme]
-base = dark
+base = "dark"
 primaryColor = "#123b5d"
 backgroundColor = "#808c9e"
-secondaryBackgroundColor = "#2467b4"
 textColor = "#ffffff"
 font = "sans serif"
-baseFontSize = 22
+baseFontSize = 25
 
 [client]
 toolbarMode = "viewer"

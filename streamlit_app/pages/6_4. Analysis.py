@@ -8,9 +8,12 @@ st.set_page_config(page_title="4. Analysis", layout="wide")
 apply_app_style()
 
 
-# st.title("Step 4 — Analysis")
+st.title("Step 4 — Analysis")
 
-# st.write("Quick visualization examples. Use linked dataset from Step 3 in real analyses.")
+st.markdown("With our cohort information linked to exposure variables, we can now begin to analyze the relationship between air quality, temperature, and health.")
+if "linked_df" in st.session_state:
+    st.dataframe(st.session_state["linked_df"])
+
 
 # if st.button("Show sample plot"):
 #     fig = sample_plot()

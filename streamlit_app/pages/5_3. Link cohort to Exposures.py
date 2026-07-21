@@ -17,15 +17,13 @@ st.markdown("""
             When a point is placed on a surface, we can extract the value at that point. 
             
             The process can be complex due to differences in spatial and temporal resolution between datasets. If a raster dataset has a spatial resolution of 100 meters, it means that each pixel represents 100 meters on the ground.
-            Therefore, two points that are within this pixel will be assigned the same value, even though in reality they're far away.
+            Therefore, two points that are within this pixel will be assigned the same value, even though in reality they're up to 100 meters apart.
+
+            Press the button to run the linking procedure. The result is a table, similar to the table we saw when introducting the cohort, but with a set of new columns: one column for the value of each exposure we selected earlier.
             """)
 
 
 run = st.button("Run linking procedure")
-
-
-code_expander = st.expander("Want to see the code used in the linking process?")
-
 
 if run:
     input_file = "streamlit_app/Resources/cardiovascularCohort.gpkg"
@@ -33,7 +31,10 @@ if run:
     rasters_list = st.session_state.get("exposure_selection") + st.session_state.get("weather_selection")
     raster_crs = 3857
     linked_df = extract_values(input_file, raster_folder, rasters_list, raster_crs)
+    st.session_state["linked_df"] = linked_df
     st.dataframe(linked_df, hide_index=True)
+
+
 
     # exposure_to_filename = {
     #     "Annual PM10": "TEMP_AVG_20201201.tif"
@@ -47,115 +48,51 @@ if run:
 
 
 
+code_expander = st.expander("Want to see the code used in the linking process?")
+with code_expander:
+   """
+        import os
+        import geopandas as gpd
+        import rasterio
+        from pathlib import Path
 
-# if run:
+        def prepare_input_data(input_file, raster_crs):
+            gdf = gpd.read_file(input_file)
 
-#     locations_gdf = st.session_state.get("location_gdf", {})
+            gdf.to_crs(raster_crs, inplace=True)
+            return gdf
 
-#     client = Client("https://beacon-iriscc.maris.nl")
+        def sample_points(gdf, raster_name):
+            raster_to_var_name = {
+                "TEMP_AVG_20201201.tif": "avg_temp_20201201"
+            }
+            variable_name = raster_to_var_name.get(raster_name)
 
-#     # ----------------------------
-#     # CONFIG
-#     # ----------------------------
+            raster_path = Path("streamlit_app", "Resources", "exposure_datasets", raster_name).resolve()
+            
+            src = rasterio.open(raster_path)
 
-#     exposure_tuple = namedtuple("Exposure", ["parameter", "value_column", "resolution"])
+            coord_list = [(x, y) for x, y in zip(gdf["geometry"].x, gdf["geometry"].y)]
+            gdf[variable_name] = [x[0].round(2) for x in src.sample(coord_list)]
 
-#     exposures_dict = {
-#         "NO2": exposure_tuple("no2", "no2", 25),
-#         "PM10": exposure_tuple("pm10", "pm10", 25),
-#         "PM2.5": exposure_tuple("pm25", "pm25", 25),
-#         "O3": exposure_tuple("o3", "o3", 25),
-#         "Black Carbon": exposure_tuple("annual_mean_black_carbon", "bc", 1000),
-#         "Annual mean temperature": exposure_tuple("annual_mean_temperature", "temperature", 1000),
-#         "Monthly mean temperature": exposure_tuple("monthly_mean_temperature", "temperature", 1000),
-#         "Daily average temperature": exposure_tuple("daily_mean_temperature", "temperature", 1000),
-#         "Daily minimum temperature": exposure_tuple("daily_min_temperature", "temperature", 1000),
-#         "Daily maximum temperature": exposure_tuple("daily_max_temperature", "temperature", 1000)
-#     }
+            return gdf[["SubjectID", variable_name]]
 
-#     # ----------------------------
-#     # BEACON FETCH
-#     # ----------------------------
-#     def fetch_exposure(parameter, value_column, bounds):
-#         minx, miny, maxx, maxy = bounds
 
-#         tables = client.list_tables()
+        def extract_values(input_file, raster_folder, exposure_selection, raster_crs):
+            # Selected environmental rasters to extract values from
+            displayName_to_raster = {
+                "Daily mean temperature (31 Dec 2020)": "TEMP_AVG_20201201.tif"
+            }
+            raster_list = [displayName_to_raster.get(e) for e in exposure_selection]
+            raster_files = [f for f in os.listdir(raster_folder) if f.endswith(".tif") and f in raster_list]
 
-#         return (
-#             tables[parameter]
-#             .query()
-#             .add_select_column("x")
-#             .add_select_column("y")
-#             .add_select_column(value_column)
-#             .add_range_filter("x", minx, maxx)
-#             .add_range_filter("y", miny, maxy)
-#             .to_geo_pandas_dataframe("x", "y", crs="EPSG:3035")
-#         )
+            # Read cohort data
+            gdf = prepare_input_data(input_file, raster_crs)
 
-#     # ----------------------------
-#     # NEAREST JOIN
-#     # ----------------------------
-#     def link_nearest(location_gdf, exposure_gdf, value_col, max_dist):
-
-#         exposure_lookup = exposure_gdf[["geometry", value_col]].copy()
-
-#         joined = gpd.sjoin_nearest(
-#             location_gdf,
-#             exposure_lookup,
-#             how="left",
-#             distance_col="distance",
-#             max_distance=max_dist
-#         )
-
-#         return joined[value_col]
-
-#     # ----------------------------
-#     # PIPELINE
-#     # ----------------------------
-
-#     linked_location_gdf = locations_gdf.copy()
-
-#     # stable ID (optional)
-#     linked_location_gdf["linking_id"] = range(len(linked_location_gdf))
-
-#     selected_exposures = st.session_state["exposure_selection"]
-#     st.write("Selected:", selected_exposures)
-
-#     # compute once
-#     st.write(f"locations_gdf: {locations_gdf}")
-#     bounds = locations_gdf.total_bounds
-#     st.write(f"bounds: {bounds}")
-
-#     for name in selected_exposures:
-
-#         cfg = exposures_dict.get(name)
-
-#         if cfg is None:
-#             continue
-
-#         st.write(f"Processing {name} ...")
-
-#         try:
-#             exposure_gdf = fetch_exposure(
-#                 cfg.parameter,
-#                 cfg.value_column,
-#                 bounds
-#             )
-
-#             st.write(f"Fetched {name}: {len(exposure_gdf)} rows")
-
-#             values = link_nearest(
-#                 linked_location_gdf,
-#                 exposure_gdf,
-#                 cfg.value_column,
-#                 cfg.resolution
-#             )
-
-#             linked_location_gdf[name] = values
-
-#             st.write(f"{name} done")
-
-#         except Exception as e:
-#             st.write(f"{name} failed: {str(e)}")
-
-#     linked_location_gdf
+            # Create geodataframe of extracted points
+            for raster in raster_files:
+                extracted_values = sample_points(gdf, raster)
+                gdf.merge(extracted_values, on="SubjectID")
+            
+            return gdf
+    """

@@ -1,12 +1,7 @@
 import os
-import pandas as pd
-from datetime import datetime
 import geopandas as gpd
 import rasterio
 from pathlib import Path
-from rasterio.plot import show
-import matplotlib.pyplot as plt
-import streamlit as st
 
 def prepare_input_data(input_file, raster_crs):
     gdf = gpd.read_file(input_file)
@@ -45,7 +40,7 @@ def extract_values(input_file, raster_folder, exposure_selection, raster_crs):
     for raster in raster_files:
         extracted_values = sample_points(gdf, raster)
         gdf.merge(extracted_values, on="SubjectID")
-
+    
     return gdf
 
 
