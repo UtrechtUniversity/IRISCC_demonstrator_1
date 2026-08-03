@@ -30,7 +30,7 @@ Supported formats:
 If you don't have your own data, you can also select from two pre-made large cohorts. 
 """)
 
-st.warning("This is an unsecure demonstrator. When uploading read addresses, never upload real health data. Only use synthetic data or anonymized datasets, and make sure to comply with your local data protection regulations. Relate environemental exposures to health data only in a secure environment.")
+st.warning("This is an unsecure demonstrator. When uploading real addresses, never upload real health data. Instead, upload a table with just addresses and a pseudo code and link the returned results to your health data on your local work environment. In addition, add dummy addresses to your data so addresses that belong to study participants are not recognizable. Alternatively, use synthetic data or anonymized datasets, and make sure to comply with your local data protection regulations.")
 
 # -----------------------------------------------------------------------------
 # Session state
