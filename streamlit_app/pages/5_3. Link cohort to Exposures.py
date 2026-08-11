@@ -44,8 +44,6 @@ if run:
     # Okay, what do I need to do now? I need to create the linking process first, and make sure it works.
     # Then I need to select the variables.
     # Then I need to download them for each country, and do the merging. 
-    # First, making sure that the linking process works well is the most critical and brain thing.
-
 
 
 code_expander = st.expander("Want to see the code used in the linking process?")

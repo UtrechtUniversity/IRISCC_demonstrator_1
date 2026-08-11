@@ -9,7 +9,7 @@ apply_app_style()
 
 BASE_DIR = Path(__file__).resolve().parent
 
-st.title("Step 2 — Air quality and weather data")
+st.title("Step 2 — Select air quality and weather data")
 
 st.markdown("""
             Fine-resolution data has been modeled for many major exposome factors, including air pollution and weather [1].
@@ -293,3 +293,4 @@ with col_b:
             st.write("•", d)
     else:
         st.warning("None selected")
+

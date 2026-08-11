@@ -31,6 +31,9 @@ def extract_values(input_file, raster_folder, exposure_selection, raster_crs):
         "Daily mean temperature (31 Dec 2020)": "TEMP_AVG_20201201.tif"
     }
     raster_list = [displayName_to_raster.get(e) for e in exposure_selection]
+
+    print(raster_folder)
+    print(os.exists(raster_folder))
     raster_files = [f for f in os.listdir(raster_folder) if f.endswith(".tif") and f in raster_list]
 
     # Read cohort data

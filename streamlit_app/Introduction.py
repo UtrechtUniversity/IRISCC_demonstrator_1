@@ -45,7 +45,7 @@ st.markdown(
 
     .iriscc-card {
         border-radius: 20px;
-        padding: 1.1rem 1.1rem 1rem 1.1rem;
+        padding: 1.1rem 1.1rem 1.8rem 1.8rem;
         background: rgba(255, 255, 255, 0.90);
         border: 1px solid rgba(16, 24, 40, 0.08);
         box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
@@ -130,11 +130,15 @@ with col2:
 st.markdown(
     """
     <div class="iriscc-hero">
-        <h1>Risk on Human Health in Urban Areas during Heatwaves Associated with Deteriorated Air Quality</h1>
+        <h2>Risk on Human Health in Urban Areas during Heatwaves Associated with Deteriorated Air Quality</h2>
         <div class="iriscc-subtitle">
-            Summer in Europe is increasingly marked by two overlapping threats: extreme heat and poor air quality.
-            This demonstrator shows how spatial data can be combined with health information to understand where
-            people may be exposed to higher environmental risk.
+            Summer in Europe is increasingly marked by two overlapping threats to health: extreme heat and poor air quality.
+            Research has shown that combined exposure to these environmental risk factors presents a greater risk to health than the sum of their individual risks [<a href="https://www.eea.europa.eu/en/newsroom/editorial/combined-effects-of-air-pollution-and-heat-exposure">1</a>].
+            Worryingly, climate change is projected to not only increase the frequency and intensity of heatwaves, but to impact the emission of air pollutants during extreme events.
+        </div>
+        <div class="iriscc-subtitle">
+            This demonstrator will show you how spatial datasets can be combined with health information to understand patterns of exposure to heat and air pollution,
+            and how these exposures may be linked to health outcomes.
         </div>
     </div>
     """,
@@ -145,28 +149,35 @@ st.markdown("<div class='iriscc-section-title'><strong>What this demonstrator do
 st.markdown(
     """
     <div class="iriscc-body">
-        It brings together climate data, air-quality measurements, and individual-level or community-level health data. The core idea is to link exposures to residential locations so that analysis happens at the same place and time as the underlying risk.
+        It brings together climate data, air-quality measurements, and residential address data of study cohorts. The workflow will demonstrate how to link exposures to locations to derive scientific insights.
+        <br><br> We'll do these steps:
+
     </div>
     """,
     unsafe_allow_html=True,
 )
 
+
 st.markdown(
     """
     <div class="iriscc-grid">
         <div class="iriscc-card">
-            <h3>Define the cohort</h3>
-            <p>Select or prepare the population and location data that will be used for the linkage step.</p>
+            <h3>Define the cohort and exposures</h3>
+            <p>Based on our research question, define the study population, location data, and exposure variables of interest.</p>
         </div>
         <div class="iriscc-card">
             <h3>Attach exposures</h3>
-            <p>Match weather and air-quality data to each address or point in space at the relevant time.</p>
+            <p>Match weather and air-quality data to each address at the relevant time.</p>
         </div>
         <div class="iriscc-card">
             <h3>Explore the results</h3>
-            <p>Inspect the linked dataset and use the analysis pages to understand patterns and risk.</p>
+            <p>Analyze and visualize the linked dataset to understand patterns of risk.</p>
         </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
+
+st.space("medium")
+
+st.page_link("pages/3_1. Cohort.py", label="Start the demonstrator", icon="➡️", width="content")
