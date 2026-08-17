@@ -11,7 +11,9 @@ def apply_app_style():
         <style>
         :root {
             --iriscc-primary: #123b5d;
-            --iriscc-accent: #0f766e;
+            --iriscc-accent: #f59e0b;
+            --iriscc-accent-soft: rgba(245, 158, 11, 0.12);
+            --iriscc-accent-strong: #d97706;
             --iriscc-surface: rgba(255, 255, 255, 0.84);
             --iriscc-surface-strong: rgba(255, 255, 255, 0.96);
             --iriscc-border: rgba(16, 24, 40, 0.10);
@@ -22,7 +24,7 @@ def apply_app_style():
 
         .stApp {
             background:
-                radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 28%),
+                radial-gradient(circle at top left, rgba(245, 158, 11, 0.12), transparent 28%),
                 radial-gradient(circle at top right, rgba(18, 59, 93, 0.10), transparent 30%),
                 linear-gradient(180deg, #f6f8fb 0%, #eef3f8 100%);
             color: var(--iriscc-text);
@@ -85,6 +87,33 @@ def apply_app_style():
             box-shadow: var(--iriscc-shadow);
         }
 
+        .stInfo {
+            border-left: 4px solid var(--iriscc-accent);
+            background: linear-gradient(180deg, rgba(255, 249, 240, 0.96), rgba(255, 255, 255, 0.98));
+        }
+
+        .stRadio > div,
+        .stSelectbox > div,
+        [data-baseweb="select"] > div,
+        [data-testid="stRadio"] {
+            accent-color: var(--iriscc-accent) !important;
+        }
+
+        div[role="radiogroup"] label,
+        div[role="radiogroup"] span,
+        div[role="radiogroup"] div {
+            font-size: 1.08rem !important;
+        }
+
+        .stRadio [role="radio"] {
+            border-color: var(--iriscc-accent) !important;
+        }
+
+        .stRadio input:checked + div,
+        .stRadio input:checked + span {
+            color: var(--iriscc-accent) !important;
+        }
+
         [data-testid="stDataFrame"] {
             border-radius: 18px;
             box-shadow: var(--iriscc-shadow);
@@ -113,12 +142,12 @@ def apply_app_style():
 
         .stButton > button:hover {
             transform: translateY(-1px);
-            border-color: rgba(18, 59, 93, 0.30);
+            border-color: rgba(245, 158, 11, 0.55);
             box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
         }
 
         .stButton > button:focus-visible {
-            outline: 3px solid rgba(18, 59, 93, 0.20);
+            outline: 3px solid rgba(245, 158, 11, 0.22);
             outline-offset: 2px;
         }
 

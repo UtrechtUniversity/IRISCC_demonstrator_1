@@ -1,10 +1,12 @@
 [theme]
-base = "dark"
-primaryColor = "#123b5d"
-backgroundColor = "#808c9e"
-textColor = "#ffffff"
+base = "light"
+primaryColor = "#f59e0b"
+backgroundColor = "#f4f7fb"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#102133"
+grayColor = "#55657a"
 font = "sans serif"
-baseFontSize = 25
+baseFontSize = 26
 
 [client]
 toolbarMode = "viewer"

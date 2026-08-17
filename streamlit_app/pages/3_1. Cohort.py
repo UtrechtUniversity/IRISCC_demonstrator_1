@@ -89,6 +89,98 @@ st.markdown(
         font-size: 1.26rem;
     }
 
+    .iriscc-story {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.25rem;
+    }
+
+    .iriscc-story-row {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 1rem;
+        align-items: start;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(16, 24, 40, 0.08);
+        border-left: 4px solid #f59e0b;
+        border-radius: 20px;
+        padding: 1rem 1.1rem 1rem 1rem;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+    }
+
+    .iriscc-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(251, 191, 36, 0.10));
+        font-size: 1.6rem;
+        box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
+    }
+
+    .iriscc-copy {
+        color: #344054;
+    }
+
+    .iriscc-copy h3 {
+        margin: 0 0 0.45rem 0;
+        font-size: 1.35rem;
+        line-height: 1.3;
+    }
+
+    .iriscc-copy p {
+        margin: 0;
+        font-size: 1.14rem;
+        line-height: 1.8;
+        color: #425466;
+    }
+
+    .iriscc-note {
+        margin-top: 1.2rem;
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 1rem;
+        align-items: start;
+        padding: 1rem 1.1rem;
+        border-radius: 18px;
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        background: linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(255, 255, 255, 0.9));
+        box-shadow: 0 12px 28px rgba(245, 158, 11, 0.08);
+    }
+
+    .iriscc-note-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        background: rgba(245, 158, 11, 0.12);
+        font-size: 1.5rem;
+    }
+
+    .iriscc-note-content {
+        color: #4b5563;
+    }
+
+    .iriscc-note-content strong {
+        display: inline-block;
+        margin-bottom: 0.38rem;
+        color: #7c4a00;
+        font-size: 1.02rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .iriscc-note-content p {
+        margin: 0;
+        font-size: 1.03rem;
+        line-height: 1.7;
+        color: #475467;
+    }
+
     .stMarkdown p,
     .stMarkdown li {
         font-size: 1.22rem;
@@ -123,21 +215,16 @@ st.markdown(
         .iriscc-hero {
             padding: 1.4rem 1.1rem 1.2rem 1.1rem;
         }
+
+        .iriscc-story-row,
+        .iriscc-note {
+            grid-template-columns: 1fr;
+        }
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-# Header logos and hero banner to match the Introduction styling
-col1, col2 = st.columns([3, 1])
-with col1:
-    iriscc_logo_path = BASE_DIR / "Resources" / "iriscc_logo.png"
-    st.image(iriscc_logo_path)
-
-with col2:
-    iras_logo_path = BASE_DIR / "Resources" / "iras_logo.png"
-    st.image(iras_logo_path)
 
 st.markdown(
     """
@@ -148,26 +235,60 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+st.markdown(
+    """
+    <div class="iriscc-story">
+        <div class="iriscc-story-row">
+            <div class="iriscc-icon">👥</div>
+            <div class="iriscc-copy">
+                <h3>Study population</h3>
+                <p>Analysis begins with a study population. They may be recruited for a specific study or selected from a dataset of population health data. Studies are often designed to follow a cohort over time so that changes in health can be linked to environmental exposures.</p>
+                <p>Studies usually involve large cohorts. You can visit <a href="https://molgeniscatalogue.org/EHEN/collections" target="_blank" rel="noopener noreferrer">this catalogue</a> to explore some of the cohorts used in epidemiological and exposome research.</p>
+            </div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.markdown(
-    '''
-    Analysis begins with a cohort of individuals.
-    
-    They may be recruited for a particular study or selected from a dataset of population health data.
-    Often, studies are designed to follow a cohort over time, to understand how their health changes in response to environmental exposures.
-    Subjects report their health status through surveys, or their health is measured through medical tests and wearable biosensors. 
-    
-    Each subject in the cohort is defined with a unique Subject ID and some spatial information.
-    Often this is their residential address, but it could also be a workplace, a bigger unit such as a postal code, or even a path that they travel through often.
-    The spatial information is used to link the subject to exposures.
+    """
+    <div class="iriscc-story">
+        <div class="iriscc-story-row">
+            <div class="iriscc-icon">📍</div>
+            <div class="iriscc-copy">
+                <h3>Spatial information</h3>
+                <p>Each subject is defined by a unique Subject ID and some spatial information, often their residential address, workplace, postcode, or a frequently travelled route. This information is used to link each subject to nearby exposures.</p>
+            </div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-    In the demonstrator, we demonstrate the linking process using a synthetic dataset of 100 subjects called *cardiovascularCohort*.
-    You can use this dataset or upload your own cohort data in GeoPackage format.
+st.markdown(
+    """
+    <div class="iriscc-story">
+        <div class="iriscc-story-row">
+            <div class="iriscc-icon">📊</div>
+            <div class="iriscc-copy">
+                <h3>Health and risk data</h3>
+                <p>Subjects report health status through surveys or contribute measurement data from medical tests and wearable biosensors. In the demonstrator, we will use a synthetic cohort with cardiovascular risk scores as the health outcome of interest.</p>
+            </div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-    Note that studies usually involve large cohorts. You can visit <a href="https://molgeniscatalogue.org/EHEN/collections">this catalogue</a> to explore some cohorts that can be used for epidemiological and exposome research)
-    '''
-    ,
-    unsafe_allow_html=True
+st.markdown(
+    """
+    <div style="margin-top: 1.5rem;">
+        <p style="font-size: 1.18rem; color: #425466; margin-bottom: 0.3rem;">In this demonstrator, we will go through the process of linking a cohort to exposures.</p>
+        <p style="font-size: 1.18rem; color: #425466; margin: 0;">You can use a sample dataset or upload your own cohort data in GeoPackage format.</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 # Initialize session state for dataset and source selection
@@ -315,7 +436,17 @@ if st.session_state["data_source"] == "upload":
         type=["gpkg", "geojson", "json", "parquet", "feather", "zip"]
     )
 else:
-    st.markdown("Using the bundled `cardiovascularCohort.gpkg` sample dataset.")
+    st.markdown("""
+    Our sample cohort is a synthetic dataset of 100 subjects called *cardiovascularCohort*.
+
+    Each subject has a fictional cardiovascular score that represents their normalized risk level for developing Cardiovascular diseases (CVDs) based on health and genetic factors measured in 2023.
+    In practice, this could be any health data you're interested in, such as medical records or measurements.
+    To enable analysis of the role of the exposome in CVDs, we will link the cohort to exposures.
+
+    The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich. We've already used a geocoding service to convert their street addresses into geographic coordinates (latitude and longitude). All of the data has been entered into a CSV file.
+    
+    Use the buttons below to to load the data and visualize locations on a map.
+    """, unsafe_allow_html=True)
 
 st.info("After choosing the data source, use the buttons below: 'Load cohort' to load and preview, and 'Visualize cohort on map' to view locations.")
 
