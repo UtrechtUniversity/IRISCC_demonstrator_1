@@ -1,5 +1,8 @@
 import streamlit as st
 from html import escape
+from datetime import datetime, timedelta
+
+from streamlit_date_picker import date_range_picker, date_picker, PickerType
 
 from utils.iriscc_utils import apply_app_style
 
@@ -53,6 +56,9 @@ def default_selection_record(name):
         "single_day": "",
         "start_date": "",
         "end_date": "",
+        "single_year": "",
+        "start_year": "",
+        "end_year": "",
     }
 
 
@@ -76,8 +82,25 @@ def format_timeframe_summary(record):
         return "No timeframe selected"
 
     timeframe_type = record.get("timeframe_type", "single_day")
+    if timeframe_type == "single_year":
+        single_year = record.get("single_year", "").strip()
+        if single_year:
+            return f"Single year: {single_year}"
+        return "Single year: not set"
+
+    if timeframe_type == "year_range":
+        start_year = record.get("start_year", "").strip()
+        end_year = record.get("end_year", "").strip()
+        if start_year and end_year:
+            return f"Year range: {start_year} to {end_year}"
+        if start_year:
+            return f"Year range: from {start_year}"
+        if end_year:
+            return f"Year range: until {end_year}"
+        return "Year range: not set"
+
     if timeframe_type == "single_day":
-        single_day = record.get("single_day", "").strip()
+        single_day = record.get("single_day", "")
         if single_day:
             return f"Single day: {single_day}"
         return "Single day: not set"
@@ -91,6 +114,12 @@ def format_timeframe_summary(record):
     if end_date:
         return f"Time range: until {end_date}"
     return "Time range: not set"
+
+
+def get_temporal_mode(name):
+    metadata = variable_metadata.get(name, {})
+    mode = str(metadata.get("temporal_mode", "daily")).strip().lower()
+    return "yearly" if mode == "yearly" else "daily"
 
 
 def slugify(value):
@@ -118,14 +147,15 @@ exposure_options = {
 
 weather_options = {
     "Annual mean temperature": "TMP_AVG_YEARLY",
-    "Daily mean temperature (31 Dec 2020)": "TMP_AVG_DAILY",
-    "Daily maximum temperature (31 Dec 2020)": "TMP_MAX_DAILY",
+    "Daily mean temperature": "TMP_AVG_DAILY",
+    "Daily maximum temperature": "TMP_MAX_DAILY",
 }
 
 variable_metadata = {
     "Annual PM10": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "yearly",
         "unit": "TBD",
         "description": "Fine-scale particulate matter estimate for annual exposure assessment.",
         "thumbnail": "",
@@ -133,6 +163,7 @@ variable_metadata = {
     "Annual PM2.5": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "yearly",
         "unit": "TBD",
         "description": "Fine-scale particulate matter estimate for annual exposure assessment.",
         "thumbnail": "",
@@ -140,6 +171,7 @@ variable_metadata = {
     "Annual O3": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "yearly",
         "unit": "TBD",
         "description": "Ground-level ozone model output intended for long-term comparison.",
         "thumbnail": "",
@@ -147,6 +179,7 @@ variable_metadata = {
     "Annual NO2": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "yearly",
         "unit": "TBD",
         "description": "Nitrogen dioxide exposure indicator for annual health analyses.",
         "thumbnail": "",
@@ -154,6 +187,7 @@ variable_metadata = {
     "Annual Black Carbon": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "yearly",
         "unit": "TBD",
         "description": "Black carbon metric designed for road-network or traffic-related analyses.",
         "thumbnail": "",
@@ -161,6 +195,7 @@ variable_metadata = {
     "Annual mean temperature": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "yearly",
         "unit": "TBD",
         "description": "Long-term annual average thermal condition used for climate exposure comparisons.",
         "thumbnail": "",
@@ -168,6 +203,7 @@ variable_metadata = {
     "Monthly mean temperature (Dec 2020)": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "daily",
         "unit": "TBD",
         "description": "Monthly average temperature relevant to seasonal conditions and heat stress.",
         "thumbnail": "",
@@ -175,6 +211,7 @@ variable_metadata = {
     "Daily mean temperature (31 Dec 2020)": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "daily",
         "unit": "TBD",
         "description": "Daily average temperature for short-term weather and exposure analyses.",
         "thumbnail": "",
@@ -182,6 +219,7 @@ variable_metadata = {
     "Daily minimum temperature (31 Dec 2020)": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "daily",
         "unit": "TBD",
         "description": "Daily minimum temperature indicator for cold exposure evaluation.",
         "thumbnail": "",
@@ -189,6 +227,7 @@ variable_metadata = {
     "Daily maximum temperature (31 Dec 2020)": {
         "spatial_resolution": "TBD",
         "temporal_coverage": "TBD",
+        "temporal_mode": "daily",
         "unit": "TBD",
         "description": "Daily maximum temperature indicator for hot-day and heat exposure analyses.",
         "thumbnail": "",
@@ -257,38 +296,65 @@ def render_variable_card(name, desc, state_key, group_label, selected):
 
         if selected:
             record = ensure_selection_record(state_key, name)
-            timeframe_type = st.radio(
-                "Timeframe type",
-                ["Single day", "Time range"],
-                index=0 if record["timeframe_type"] == "single_day" else 1,
-                horizontal=True,
-                key=f"{state_key}_{slugify(name)}_timeframe",
-            )
-            record["timeframe_type"] = "single_day" if timeframe_type == "Single day" else "time_range"
+            temporal_mode = get_temporal_mode(name)
 
-            if record["timeframe_type"] == "single_day":
-                record["single_day"] = st.text_input(
-                    "Date",
-                    value=record.get("single_day", ""),
-                    key=f"{state_key}_{slugify(name)}_single_day",
-                    placeholder="YYYY-MM-DD",
+            if temporal_mode == "yearly":
+                timeframe_type = st.radio(
+                    "Timeframe type",
+                    ["Single year", "Year range"],
+                    index=0 if record["timeframe_type"] == "single_year" else 1,
+                    horizontal=True,
+                    key=f"{state_key}_{slugify(name)}_timeframe",
                 )
+                record["timeframe_type"] = "single_year" if timeframe_type == "Single year" else "year_range"
+
+                if record["timeframe_type"] == "single_year":
+                    record["single_year"] = st.text_input(
+                        "Year",
+                        value=record.get("single_year", ""),
+                        key=f"{state_key}_{slugify(name)}_single_year",
+                        placeholder="YYYY",
+                    )
+                    record["start_year"] = ""
+                    record["end_year"] = ""
+                else:
+                    record["start_year"] = st.text_input(
+                        "Start year",
+                        value=record.get("start_year", ""),
+                        key=f"{state_key}_{slugify(name)}_start_year",
+                        placeholder="YYYY",
+                    )
+                    record["end_year"] = st.text_input(
+                        "End year",
+                        value=record.get("end_year", ""),
+                        key=f"{state_key}_{slugify(name)}_end_year",
+                        placeholder="YYYY",
+                    )
+                    record["single_year"] = ""
+
+                record["single_day"] = ""
                 record["start_date"] = ""
                 record["end_date"] = ""
             else:
-                record["start_date"] = st.text_input(
-                    "Start date",
-                    value=record.get("start_date", ""),
-                    key=f"{state_key}_{slugify(name)}_start_date",
-                    placeholder="YYYY-MM-DD",
+                timeframe_type = st.radio(
+                    "Timeframe type",
+                    ["Single day", "Day range"],
+                    index=0 if record["timeframe_type"] == "single_day" else 1,
+                    horizontal=True,
+                    key=f"{state_key}_{slugify(name)}_timeframe",
                 )
-                record["end_date"] = st.text_input(
-                    "End date",
-                    value=record.get("end_date", ""),
-                    key=f"{state_key}_{slugify(name)}_end_date",
-                    placeholder="YYYY-MM-DD",
-                )
-                record["single_day"] = ""
+                record["timeframe_type"] = "single_day" if timeframe_type == "Single day" else "time_range"
+
+                if record["timeframe_type"] == "single_day":
+                    record["single_day"] = st.date_input("Label", value="today", min_value=None, max_value=None, key=f"{state_key}_{slugify(name)}_single_day", help=None, on_change=None, args=None, kwargs=None, format="YYYY/MM/DD", disabled=False, label_visibility="visible", width="stretch")
+
+                else:
+                    record["single_day"] = st.date_input("Label", value="today", min_value=None, max_value=None, key=f"{state_key}_{slugify(name)}_single_day", help=None, on_change=None, args=None, kwargs=None, format="YYYY/MM/DD", disabled=False, label_visibility="visible", width="stretch")
+
+
+                record["single_year"] = ""
+                record["start_year"] = ""
+                record["end_year"] = ""
 
             st.caption(f"Selection saved: {format_timeframe_summary(record)}")
 
