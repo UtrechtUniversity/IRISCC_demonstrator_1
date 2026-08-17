@@ -242,8 +242,8 @@ st.markdown(
             <div class="iriscc-icon">👥</div>
             <div class="iriscc-copy">
                 <h3>Study population</h3>
-                <p>Analysis begins with a study population. They may be recruited for a specific study or selected from a dataset of population health data. Studies are often designed to follow a cohort over time so that changes in health can be linked to environmental exposures.</p>
-                <p>Studies usually involve large cohorts. You can visit <a href="https://molgeniscatalogue.org/EHEN/collections" target="_blank" rel="noopener noreferrer">this catalogue</a> to explore some of the cohorts used in epidemiological and exposome research.</p>
+                <p>Analysis begins with a study population. Individuals may be recruited for a specific study or selected from a dataset of population health data. Studies are often designed to follow a cohort over time so that changes in health can be linked to environmental exposures.<br><br></p>
+                <p>Studies usually involve large cohorts. You can visit <a href="https://molgeniscatalogue.org/EHEN/collections" target="_blank" rel="noopener noreferrer">this catalogue</a> to explore some of the cohorts used in epidemiological and exposure research.</p>
             </div>
         </div>
     </div>
@@ -273,7 +273,7 @@ st.markdown(
             <div class="iriscc-icon">📊</div>
             <div class="iriscc-copy">
                 <h3>Health and risk data</h3>
-                <p>Subjects report health status through surveys or contribute measurement data from medical tests and wearable biosensors. In the demonstrator, we will use a synthetic cohort with cardiovascular risk scores as the health outcome of interest.</p>
+                <p>Subjects report demographic information and health status through surveys, or contribute measurement data from medical tests and wearable biosensors. In the demonstrator, we will use a synthetic cohort with cardiovascular risk scores as the health outcome of interest.</p>
             </div>
         </div>
     </div>
