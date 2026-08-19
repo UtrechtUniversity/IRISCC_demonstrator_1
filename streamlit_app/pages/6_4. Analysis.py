@@ -17,7 +17,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-instruction'>With your cohort information linked to exposure variables, you can now begin to analyze the relationship between air quality, temperature, and health.</div>", unsafe_allow_html=True)
+st.markdown("<div class='iriscc-instruction'>With your cohort information linked to exposure variables, you can now begin to visualize the exposure to air pollution and temperature in the uploaded cohort.</div>", unsafe_allow_html=True)
 if "linked_df" in st.session_state:
     st.dataframe(st.session_state["linked_df"])
 

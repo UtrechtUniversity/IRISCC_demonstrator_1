@@ -27,18 +27,19 @@ st.markdown("<div class='iriscc-section-title'><strong>Exposure variables</stron
 st.markdown(
     """
     <div class="iriscc-body">
-        This demonstrator focuses on two main types of exposure variables: air quality and weather data.
+        This demonstrator focuses on two main types of exposure variables: air quality and temperature data.
         <br><br>
         In the field of exposomics, exposure variables are environmental factors that individuals or populations are exposed to, which can have an impact on their health.
-        These variables can be physical (e.g., temperature, noise), chemical (e.g., air pollutants, pesticides), related to the build environment (e.g. greenspaces, walkability), and more.
+        These variables can be physical (e.g., temperature, noise), chemical (e.g., air pollutants, pesticides), related to the built environment (e.g. greenspaces, walkability), and more.
         <br><br>
-        Exposure can be estimated in various ways. It can be measured directly, for example by using sensors in houses, giving surveys, or giving wearable devices to cohort members. Or it can be estimated based on models,
-        useful when some exposures are impossible to measure comprehensively.
-        Models use data from measurement stations and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. There are many data catalogues on the internet where you can find datasets of modeled exposure variables. In this demonstrator, we'll use datasets created in the <a href=\"https://expanseproject.eu/">Expanse Project</a>.
+        Exposure can be estimated in various ways. It can be measured directly, for example by using sensors in houses, collecting surveys, or giving wearable devices to cohort members. Or it can be estimated based on models,
+        useful when some exposures are impossible to measure comprehensively. Models use data from measurement stations
+        and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. There are many data catalogues on the internet where you can find datasets of modeled exposure variables.
+        In this demonstrator, we'll use datasets created in the <a href=\"https://expanseproject.eu/">Expanse Project</a>.
         All of the datasets created in this project are available in a <a href=\"https://exposome.uu.nl/">data catalogue</a> so other researchers can access them for their own studies. 
         <br><br>
-        Studies show that combining pollutants can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
-        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple pollutants.
+        Studies show that combining exposures can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
+        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures.
         <br><br>
         Watch out! Different variables are available at differnet temporal and spatial resolutions, which will affect your subsequent analysis.
         <br><br>
