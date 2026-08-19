@@ -24,46 +24,61 @@ st.markdown(
 
 st.markdown("<div class='iriscc-section-title'><strong>Exposure variables</strong></div>", unsafe_allow_html=True)
 
+
 st.markdown(
     """
-    <div class="iriscc-body">
-        This demonstrator focuses on two main types of exposure variables: air quality and temperature data.
-        <br><br>
-        In the field of exposomics, exposure variables are environmental factors that individuals or populations are exposed to, which can have an impact on their health.
-        These variables can be physical (e.g., temperature, noise), chemical (e.g., air pollutants, pesticides), related to the built environment (e.g. greenspaces, walkability), and more.
-        <br><br>
-        Exposure can be estimated in various ways. It can be measured directly, for example by using sensors in houses, collecting surveys, or giving wearable devices to cohort members. Or it can be estimated based on models,
-        useful when some exposures are impossible to measure comprehensively. Models use data from measurement stations
-        and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. There are many data catalogues on the internet where you can find datasets of modeled exposure variables.
-        In this demonstrator, we'll use datasets created in the <a href=\"https://expanseproject.eu/">Expanse Project</a>.
-        All of the datasets created in this project are available in a <a href=\"https://exposome.uu.nl/">data catalogue</a> so other researchers can access them for their own studies. 
-        <br><br>
-        Studies show that combining exposures can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
-        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures.
-        <br><br>
-        Watch out! Different variables are available at differnet temporal and spatial resolutions, which will affect your subsequent analysis.
-        <br><br>
-     </div>
+    <div class="iriscc-grid">
+        <div class="iriscc-card">
+            <h3>Types of exposures</h3>
+            <p>This demonstrator focuses on two main types of exposure variables: air quality and temperature data.
+            <br><br>
+            In the field of exposomics, exposure variables are environmental factors that individuals or populations are exposed to, which can have an impact on their health.
+            These variables can be physical (e.g., temperature, noise), chemical (e.g., air pollutants, pesticides), related to the built environment (e.g. greenspaces, walkability), and more.
+            </div>
+        <div class="iriscc-card">
+            <h3>Estimating exposure</h3>
+            <p>Exposure can be estimated in various ways. It can be measured directly, for example by using sensors in houses, collecting surveys, or giving wearable devices to cohort members. Or it can be estimated based on models,
+            which is useful when some exposures are impossible to measure comprehensively. Models use data from measurement stations
+            and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. </p>
+        </div>
+        <div class="iriscc-card">
+            <h3>Data sources</h3>
+            <p>There are many data catalogues on the internet where you can find datasets of modeled exposure variables. In this demonstrator, we'll use datasets created in the <a href=\"https://expanseproject.eu/">Expanse Project</a>.
+            All of the datasets created in this project are available in a <a href=\"https://exposome.uu.nl/">data catalogue</a> so other researchers can access them for their own studies.</p>
+        </div>
+    </div>
     """,
     unsafe_allow_html=True,
 )
 
 
 
-        # <div class="exposure-step">Step 2 of 4</div>
-        #     <div class="exposure-intro-text">You can select multiple pollutants. Combining pollutants can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub/\">3</a>].</div>
-        # </div>
+st.markdown(
+    """
+    <div class="iriscc-body">
+          <br><br>
+     </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-# st.markdown(
-#     """
-#     <div class="selection-guide">
-#         <span>Select a variable</span>
-#         <span>Set its timeframe</span>
-#         <span>Review your selections below</span>
-#     </div>
-#     """,
-#     unsafe_allow_html=True,
-# )
+st.markdown("<div class='iriscc-section-title'><strong>Choose your exposure variables</strong></div>", unsafe_allow_html=True)
+
+st.markdown(
+    """
+    <div class="iriscc-body">
+        Studies show that combining exposures can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
+        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures. Make sure to select at least one from each category.
+        <br><br>
+        Watch out! Different variables are available at differnet temporal and spatial resolutions, which will affect your subsequent analysis.
+        Think about your research question and the available data when making your selections. Do you want to compare exposures across years, or do you want to focus on a specific year? Do you want to look at daily temperature variations, or are you more interested in long-term trends?
+        <br><br>
+      </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
 
 # -----------------------------------------------------------------------------
 # Session state

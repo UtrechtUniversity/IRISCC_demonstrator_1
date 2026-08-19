@@ -27,7 +27,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-section-title'><strong>Where data comes from</strong></div>", unsafe_allow_html=True)
+st.markdown("<div class='iriscc-section-title'><strong>Understanding the cohort</strong></div>", unsafe_allow_html=True)
 
 
 st.markdown(
