@@ -1,6 +1,6 @@
 import os
 import geopandas as gpd
-import rasterio
+# import rasterio
 from pathlib import Path
 
 def prepare_input_data(input_file, raster_crs):
@@ -17,12 +17,12 @@ def sample_points(gdf, raster_name):
 
     raster_path = Path("streamlit_app", "Resources", "exposure_datasets", raster_name).resolve()
     
-    src = rasterio.open(raster_path)
+    # src = rasterio.open(raster_path)
 
-    coord_list = [(x, y) for x, y in zip(gdf["geometry"].x, gdf["geometry"].y)]
-    gdf[variable_name] = [x[0].round(2) for x in src.sample(coord_list)]
+    # coord_list = [(x, y) for x, y in zip(gdf["geometry"].x, gdf["geometry"].y)]
+    # gdf[variable_name] = [x[0].round(2) for x in src.sample(coord_list)]
 
-    return gdf[["SubjectID", variable_name]]
+    # return gdf[["SubjectID", variable_name]]
 
 
 def extract_values(gdf, raster_folder, selected_rasters_list, raster_crs):

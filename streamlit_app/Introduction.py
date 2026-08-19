@@ -38,8 +38,8 @@ st.markdown(
         Research has shown that combined exposure to these environmental risk factors presents a greater risk to health than the sum of their individual risks [<a href="https://www.eea.europa.eu/en/newsroom/editorial/combined-effects-of-air-pollution-and-heat-exposure">1</a>].
         Worryingly, climate change is projected to not only increase the frequency and intensity of heatwaves, but to impact the emission of air pollutants during extreme events.
         <br><br>
-        This demonstrator allows you to link data on air pollutants and temperature to existing cohorts, thereby enabling the analysis 
-        of how these exposures may be linked to health outcomes in these cohorts. This is a key workflow in Health Impact Assessments (HIA).
+        This demonstrator allows you to link data on air pollutants and temperature to existing cohorts, thereby relevaling spatial patterns and enabling the analysis 
+        of how these exposures may be linked to health outcomes. This is a key workflow in Health Impact Assessments (HIA).
         <br><br>        
         These insights can be used to guide urban design, build resilient healthcare systems,
         inform local public health interventions, and develop strategic public policy (at national and global levels) that incporates health considerations [<a href="https://sciencemediahub.eu/2026/07/15/a-scientists-opinion-interview-with-prof-dr-roel-vermeulen-on-extreme-weather-and-the-impact-on-our-health/">2</a>].
@@ -54,9 +54,9 @@ st.markdown("<div class='iriscc-section-title'><strong>What this demonstrator do
 st.markdown(
     """
     <div class="iriscc-body">
-        The demonstrator climate data (temperature, both retrospective and prospective), air-quality measurements (particulate matter and NO2), and (residential) address data of study cohorts. The workflow will demonstrate how to link exposures to locations to derive scientific insights.
+        The demonstrator integrates climate data (temperature, both retrospective and prospective), air-quality measurements (pollutant concentrations), and (residential) address data of study cohorts. The workflow demonstrates how to link exposures to locations to derive scientific insights.
         <br><br>
-        We'll do these steps:
+        You'll do these steps:
     </div>
     """,
     unsafe_allow_html=True,
@@ -67,8 +67,8 @@ st.markdown(
     """
     <div class="iriscc-grid">
         <div class="iriscc-card">
-            <h3>Define the cohort</h3>
-            <p>Based on our research question, define the study population, location data, and exposure variables of interest.</p>
+            <h3>Select the cohort</h3>
+            <p>Based on your research question, define the study population, location data, and exposure variables of interest.</p>
         </div>
         <div class="iriscc-card">
             <h3>Attach exposures</h3>

@@ -34,7 +34,8 @@ st.markdown(
         <br><br>
         Exposure can be estimated in various ways. It can be measured directly, for example by using sensors in houses, giving surveys, or giving wearable devices to cohort members. Or it can be estimated based on models,
         useful when some exposures are impossible to measure comprehensively.
-        Models use data from measurement stations and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. There are many places  on the internet to find datasets of modeled exposure variables. In this demonstrator, we'll use datasets created in the [<a href=\"[<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>]">Expanse project</a>]. 
+        Models use data from measurement stations and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. There are many data catalogues on the internet where you can find datasets of modeled exposure variables. In this demonstrator, we'll use datasets created in the <a href=\"https://expanseproject.eu/">Expanse Project</a>.
+        All of the datasets created in this project are available in a <a href=\"https://exposome.uu.nl/">data catalogue</a> so other researchers can access them for their own studies. 
         <br><br>
         Studies show that combining pollutants can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
         Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple pollutants.
