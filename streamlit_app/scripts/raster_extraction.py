@@ -25,24 +25,14 @@ def sample_points(gdf, raster_name):
     return gdf[["SubjectID", variable_name]]
 
 
-def extract_values(input_file, raster_folder, exposure_selection, raster_crs):
-    # Selected environmental rasters to extract values from
-    displayName_to_raster = {
-        "Daily mean temperature (31 Dec 2020)": "TEMP_AVG_20201201.tif"
-    }
-    raster_list = [displayName_to_raster.get(e) for e in exposure_selection]
-
-    print(raster_folder)
-    print(os.exists(raster_folder))
-    raster_files = [f for f in os.listdir(raster_folder) if f.endswith(".tif") and f in raster_list]
-
-    # Read cohort data
-    gdf = prepare_input_data(input_file, raster_crs)
+def extract_values(gdf, raster_folder, selected_rasters_list, raster_crs):
+    rasters_in_folder = os.listdir(raster_folder)
+    rasters_to_link = [f for f in rasters_in_folder if f.endswith(".tif") and f in selected_rasters_list]
 
     # Create geodataframe of extracted points
-    for raster in raster_files:
+    for raster in rasters_to_link:
         extracted_values = sample_points(gdf, raster)
-        gdf.merge(extracted_values, on="SubjectID")
+        gdf = gdf.merge(extracted_values, on="SubjectID")
     
     return gdf
 
@@ -55,7 +45,7 @@ if __name__ == "__main__":
     exposure_selection = ["TEMP_AVG_20201201.tif"]
 
     gdf = extract_values(
-        input_file=input_file,
+        input_gdf=gpd.read_file(input_file),
         raster_folder=raster_folder,
         exposure_selection=exposure_selection,
         raster_crs=raster_crs

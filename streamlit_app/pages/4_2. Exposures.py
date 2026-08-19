@@ -15,116 +15,37 @@ apply_app_style()
 
 st.markdown(
     """
-    <style>
-    .exposure-intro {
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        align-items: flex-end;
-        padding: 1.25rem 1.4rem;
-        margin: 0.25rem 0 1.2rem;
-        border: 1px solid rgba(18, 59, 93, 0.14);
-        border-radius: 20px;
-        background: linear-gradient(120deg, rgba(255,255,255,0.96), rgba(236,244,250,0.92));
-        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
-    }
-    .exposure-intro-copy {
-        max-width: 760px;
-    }
-    .exposure-kicker {
-        color: #d97706;
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        margin-bottom: 0.35rem;
-    }
-    .exposure-intro-title {
-        color: #102133;
-        font-size: 1.35rem;
-        font-weight: 800;
-        line-height: 1.2;
-        margin-bottom: 0.35rem;
-    }
-    .exposure-intro-text {
-        color: #5f6b7a;
-        font-size: 0.92rem;
-        line-height: 1.5;
-    }
-    .exposure-step {
-        flex: 0 0 auto;
-        color: #123b5d;
-        font-size: 0.8rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        white-space: nowrap;
-    }
-    .selection-guide {
-        display: flex;
-        gap: 0.65rem;
-        flex-wrap: wrap;
-        margin: 0.2rem 0 0.9rem;
-    }
-    .selection-guide span {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.35rem 0.65rem;
-        border-radius: 999px;
-        background: rgba(18, 59, 93, 0.07);
-        color: #123b5d;
-        font-size: 0.78rem;
-        font-weight: 700;
-    }
-    .selection-guide span::before {
-        content: "";
-        width: 0.42rem;
-        height: 0.42rem;
-        border-radius: 50%;
-        background: #f59e0b;
-    }
-    [data-testid="stTabs"] button {
-        font-weight: 800;
-    }
-    [data-testid="stTabs"] [aria-selected="true"] {
-        color: #123b5d;
-    }
-    .variable-section-note {
-        color: #5f6b7a;
-        font-size: 0.86rem;
-        margin: -0.35rem 0 1rem;
-    }
-    .summary-panel {
-        padding: 1rem 1.1rem;
-        border: 1px solid rgba(16, 24, 40, 0.10);
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.72);
-    }
-    @media (max-width: 700px) {
-        .exposure-intro {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.title("Step 2 — Select air quality and weather data")
-
-st.markdown(
-    """
-    <div class="exposure-intro">
-        <div class="exposure-intro-copy">
-            <div class="exposure-intro-title">Choose datasets, then define their timeframe</div>
-            <div class="exposure-intro-text">Select one or more variables. Each selected variable reveals the timeframe controls that match its data, so annual data uses years and daily data uses calendar dates.</div>
-        </div>
+    <div class="iriscc-page-header">
+        <h2 class="iriscc-page-title">Step 2 — Select air quality and weather data</h2>
     </div>
     """,
     unsafe_allow_html=True,
 )
+
+st.markdown("<div class='iriscc-section-title'><strong>Exposure variables</strong></div>", unsafe_allow_html=True)
+
+st.markdown(
+    """
+    <div class="iriscc-body">
+        This demonstrator focuses on two main types of exposure variables: air quality and weather data.
+        <br><br>
+        In the field of exposomics, exposure variables are environmental factors that individuals or populations are exposed to, which can have an impact on their health.
+        These variables can be physical (e.g., temperature, noise), chemical (e.g., air pollutants, pesticides), related to the build environment (e.g. greenspaces, walkability), and more.
+        <br><br>
+        Exposure can be estimated in various ways. It can be measured directly, for example by using sensors in houses, giving surveys, or giving wearable devices to cohort members. Or it can be estimated based on models,
+        useful when some exposures are impossible to measure comprehensively.
+        Models use data from measurement stations and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. There are many places  on the internet to find datasets of modeled exposure variables. In this demonstrator, we'll use datasets created in the [<a href=\"[<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>]">Expanse project</a>]. 
+        <br><br>
+        Studies show that combining pollutants can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
+        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple pollutants.
+        <br><br>
+        Watch out! Different variables are available at differnet temporal and spatial resolutions, which will affect your subsequent analysis.
+        <br><br>
+     </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 
         # <div class="exposure-step">Step 2 of 4</div>
@@ -619,3 +540,5 @@ if len(raster_list) > 10:
                This may take a long time to process in the next step.
                Reduce the number of variables or narrow
                the timeframes before continuing.""")
+else:
+    st.session_state["raster_list"] = raster_list

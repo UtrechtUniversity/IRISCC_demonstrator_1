@@ -18,274 +18,35 @@ st.set_page_config(page_title="1. Cohort", layout="wide")
 apply_app_style()
 
 
-
 st.markdown(
     """
-    <style>
-    .iriscc-hero {
-        border-radius: 28px;
-        padding: 2rem 2rem 1.6rem 2rem;
-        background:
-            linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(233, 239, 246, 0.90)),
-            radial-gradient(circle at top right, rgba(15, 118, 110, 0.12), transparent 30%),
-            radial-gradient(circle at bottom left, rgba(18, 59, 93, 0.10), transparent 28%);
-        border: 1px solid rgba(16, 24, 40, 0.10);
-        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.10);
-        margin-bottom: 1.25rem;
-    }
-
-    .iriscc-hero h1 {
-        margin: 0;
-        font-size: clamp(2.8rem, 5vw, 4.8rem);
-        line-height: 1.05;
-        letter-spacing: -0.04em;
-    }
-
-    .iriscc-subtitle {
-        margin-top: 0.9rem;
-        font-size: 1.35rem;
-        line-height: 1.8;
-        color: #425466;
-    }
-
-    .iriscc-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 1rem;
-        margin: 1.3rem 0 0.4rem 0;
-    }
-
-    .iriscc-card {
-        border-radius: 20px;
-        padding: 1.1rem 1.1rem 1.8rem 1.8rem;
-        background: rgba(255, 255, 255, 0.90);
-        border: 1px solid rgba(16, 24, 40, 0.08);
-        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
-        height: 100%;
-    }
-
-    .iriscc-card h3 {
-        margin: 0 0 0.45rem 0;
-        font-size: 1.38rem;
-    }
-
-    .iriscc-card p {
-        margin: 0;
-        color: #516173;
-        line-height: 1.72;
-        font-size: 1.22rem;
-    }
-
-    .iriscc-section-title {
-        margin-top: 1.4rem;
-        margin-bottom: 0.5rem;
-        font-size: 1.45rem;
-        letter-spacing: -0.02em;
-    }
-
-    .iriscc-body {
-        color: #344054;
-        line-height: 1.82;
-        font-size: 1.26rem;
-    }
-
-    .iriscc-story {
-        display: grid;
-        gap: 1rem;
-        margin-top: 1.25rem;
-    }
-
-    .iriscc-story-row {
-        display: grid;
-        grid-template-columns: 52px minmax(0, 1fr);
-        gap: 1rem;
-        align-items: start;
-        background: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(16, 24, 40, 0.08);
-        border-left: 4px solid #f59e0b;
-        border-radius: 20px;
-        padding: 1rem 1.1rem 1rem 1rem;
-        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
-    }
-
-    .iriscc-icon {
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 14px;
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(251, 191, 36, 0.10));
-        font-size: 1.6rem;
-        box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.18);
-    }
-
-    .iriscc-copy {
-        color: #344054;
-    }
-
-    .iriscc-copy h3 {
-        margin: 0 0 0.45rem 0;
-        font-size: 1.35rem;
-        line-height: 1.3;
-    }
-
-    .iriscc-copy p {
-        margin: 0;
-        font-size: 1.14rem;
-        line-height: 1.8;
-        color: #425466;
-    }
-
-    .iriscc-note {
-        margin-top: 1.2rem;
-        display: grid;
-        grid-template-columns: 52px minmax(0, 1fr);
-        gap: 1rem;
-        align-items: start;
-        padding: 1rem 1.1rem;
-        border-radius: 18px;
-        border: 1px solid rgba(245, 158, 11, 0.25);
-        background: linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(255, 255, 255, 0.9));
-        box-shadow: 0 12px 28px rgba(245, 158, 11, 0.08);
-    }
-
-    .iriscc-note-icon {
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 14px;
-        background: rgba(245, 158, 11, 0.12);
-        font-size: 1.5rem;
-    }
-
-    .iriscc-note-content {
-        color: #4b5563;
-    }
-
-    .iriscc-note-content strong {
-        display: inline-block;
-        margin-bottom: 0.38rem;
-        color: #7c4a00;
-        font-size: 1.02rem;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-    }
-
-    .iriscc-note-content p {
-        margin: 0;
-        font-size: 1.03rem;
-        line-height: 1.7;
-        color: #475467;
-    }
-
-    .stMarkdown p,
-    .stMarkdown li {
-        font-size: 1.22rem;
-        line-height: 1.8;
-    }
-
-    .stCaption {
-        font-size: 1.08rem;
-    }
-
-    h2, h3, h4, h5, h6 {
-        line-height: 1.2;
-    }
-
-    h2 {
-        font-size: 1.9rem;
-    }
-
-    h3 {
-        font-size: 1.45rem;
-    }
-
-    h4 {
-        font-size: 1.25rem;
-    }
-
-    @media (max-width: 900px) {
-        .iriscc-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .iriscc-hero {
-            padding: 1.4rem 1.1rem 1.2rem 1.1rem;
-        }
-
-        .iriscc-story-row,
-        .iriscc-note {
-            grid-template-columns: 1fr;
-        }
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-    <div class="iriscc-hero">
-        <h2>Step 1 — Prepare cohort data</h2>
+    <div class="iriscc-page-header">
+        <h2 class="iriscc-page-title">Step 1 — Prepare cohort data</h2>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
+st.markdown("<div class='iriscc-section-title'><strong>Where data comes from</strong></div>", unsafe_allow_html=True)
+
+
 st.markdown(
     """
-    <div class="iriscc-story">
-        <div class="iriscc-story-row">
-            <div class="iriscc-icon">👥</div>
-            <div class="iriscc-copy">
-                <h3>Study population</h3>
-                <p>Analysis begins with a study population. Individuals may be recruited for a specific study or selected from a dataset of population health data. Studies are often designed to follow a cohort over time so that changes in health can be linked to environmental exposures.<br><br></p>
-                <p>Studies usually involve large cohorts. You can visit <a href="https://molgeniscatalogue.org/EHEN/collections" target="_blank" rel="noopener noreferrer">this catalogue</a> to explore some of the cohorts used in epidemiological and exposure research.</p>
-            </div>
+    <div class="iriscc-grid">
+        <div class="iriscc-card">
+            <h3>👥 Study population</h3>
+            <p>Analysis begins with a study population. Individuals may be recruited for a specific study or selected from a dataset of population health data.
+            <br><br>
+            Studies are often designed to follow a cohort over time so that changes in health can be linked to environmental exposures. <p>
         </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-    <div class="iriscc-story">
-        <div class="iriscc-story-row">
-            <div class="iriscc-icon">📍</div>
-            <div class="iriscc-copy">
-                <h3>Spatial information</h3>
-                <p>Each subject is defined by a unique Subject ID and some spatial information, often their residential address, workplace, postcode, or a frequently travelled route. This information is used to link each subject to nearby exposures.</p>
-            </div>
+        <div class="iriscc-card">
+            <h3>📍 Spatial information</h3>
+            <p>Each subject is defined by a unique Subject ID and some spatial information. Often it's their residential address, but it can also be their workplace, postcode, or a frequently travelled route. It all depends on the research question and available data. This information is used to link each subject to nearby exposures.</p>
         </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-    <div class="iriscc-story">
-        <div class="iriscc-story-row">
-            <div class="iriscc-icon">📊</div>
-            <div class="iriscc-copy">
-                <h3>Health and risk data</h3>
-                <p>Subjects report demographic information and health status through surveys, or contribute measurement data from medical tests and wearable biosensors. In the demonstrator, we will use a synthetic cohort with cardiovascular risk scores as the health outcome of interest.</p>
-            </div>
+        <div class="iriscc-card">
+            <h3>📊 Demographics and health </h3>
+            <p>Subjects report demographic information and health status through surveys, or contribute measurement data from medical tests and wearable biosensors.</p>
         </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    """
-    <div style="margin-top: 1.5rem;">
-        <p style="font-size: 1.18rem; color: #425466; margin-bottom: 0.3rem;">In this demonstrator, we will go through the process of linking a cohort to exposures.</p>
-        <p style="font-size: 1.18rem; color: #425466; margin: 0;">You can use a sample dataset or upload your own cohort data in GeoPackage format.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -415,9 +176,20 @@ def validate_gdf(gdf):
     return gdf
 
 
-# UI: choose data source (sample or upload) — makes choice explicit
-st.markdown("**Choose data source**")
-source = st.radio("Select dataset", ("Sample dataset", "Upload your own"), index=0, horizontal=True)
+st.markdown("<div class='iriscc-section-title'><strong>Choose your data source</strong></div>", unsafe_allow_html=True)
+
+st.markdown(
+    """
+    <div class="iriscc-body">
+        To start your analysis, you can either use a sample cohort dataset or upload your own.
+        Choose the option that best suits your needs. Then, use the buttons below to load and visualize the cohort data on a map.
+     </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+source = st.radio("", ("Sample dataset", "Upload your own"), index=0, horizontal=True)
 st.session_state["data_source"] = "sample" if source == "Sample dataset" else "upload"
 
 # If the user switched the chosen data source, clear any shown map to avoid mixing sources
@@ -430,25 +202,37 @@ elif prev_choice != st.session_state["data_source"]:
 
 uploaded_file = None
 if st.session_state["data_source"] == "upload":
-    st.markdown("Upload a GeoPackage, GeoJSON, Parquet/Feather, or ZIP (shapefile)")
+    st.markdown(
+        """
+        <div class="iriscc-body">
+            Please ensure that your file is in a supported geospatial format (GeoPackage, GeoJSON, Parquet/Feather, or ZIP containing a shapefile).
+            Make sure that there is a geometry column, and a column with a unique identifier for each subject (e.g., SubjectID).
+            <br><br>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.warning("Warning! This is an unsecure demonstrator. When uploading real addresses, never upload real health data. Instead, upload a table with just addresses and a pseudo code and link the returned results to your health data on your local work environment. In addition, add dummy addresses to your data so addresses that belong to study participants are not recognizable. Alternatively, use synthetic data or anonymized datasets, and make sure to comply with your local data protection regulations.")
     uploaded_file = st.file_uploader(
-        "Upload cohort file",
+        "",
         type=["gpkg", "geojson", "json", "parquet", "feather", "zip"]
     )
 else:
-    st.markdown("""
-    Our sample cohort is a synthetic dataset of 100 subjects called *cardiovascularCohort*.
+    st.markdown(
+        """
+        <div class="iriscc-body">
+            The sample cohort is a synthetic dataset of 100 subjects called <i>cardiovascularCohort</i>.
+            Each subject has a fictional cardiovascular score that represents their normalized risk level for developing Cardiovascular diseases (CVDs) based on health and genetic factors measured in 2023.
+            In practice, this could be any health data you're interested in, such as medical records or measurements.
+            <br><br>
+            The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich. A geocoding service has already been used to convert their street addresses into geographic coordinates (latitude and longitude). All of the data has been entered into a CSV file.
+            <br><br>
+            </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    Each subject has a fictional cardiovascular score that represents their normalized risk level for developing Cardiovascular diseases (CVDs) based on health and genetic factors measured in 2023.
-    In practice, this could be any health data you're interested in, such as medical records or measurements.
-    To enable analysis of the role of the exposome in CVDs, we will link the cohort to exposures.
-
-    The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich. We've already used a geocoding service to convert their street addresses into geographic coordinates (latitude and longitude). All of the data has been entered into a CSV file.
-    
-    Use the buttons below to to load the data and visualize locations on a map.
-    """, unsafe_allow_html=True)
-
-st.info("After choosing the data source, use the buttons below: 'Load cohort' to load and preview, and 'Visualize cohort on map' to view locations.")
 
 # -----------------------------------------------------------------------------
 # Bottom action buttons: Load cohort and Visualize

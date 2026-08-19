@@ -8,9 +8,16 @@ st.set_page_config(page_title="4. Analysis", layout="wide")
 apply_app_style()
 
 
-st.title("Step 4 — Analysis")
+st.markdown(
+    """
+    <div class="iriscc-page-header">
+        <h2 class="iriscc-page-title">Step 4 — Analysis</h2>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-st.markdown("With our cohort information linked to exposure variables, we can now begin to analyze the relationship between air quality, temperature, and health.")
+st.markdown("<div class='iriscc-instruction'>With our cohort information linked to exposure variables, you can now begin to analyze the relationship between air quality, temperature, and health.</div>", unsafe_allow_html=True)
 if "linked_df" in st.session_state:
     st.dataframe(st.session_state["linked_df"])
 

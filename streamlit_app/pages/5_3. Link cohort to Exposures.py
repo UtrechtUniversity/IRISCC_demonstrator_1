@@ -1,6 +1,6 @@
 from collections import namedtuple
 import streamlit as st
-from beacon_api import *
+# from beacon_api import *
 import geopandas as gpd
 from utils.iriscc_utils import apply_app_style
 from scripts.raster_extraction import extract_values
@@ -8,31 +8,47 @@ from scripts.raster_extraction import extract_values
 st.set_page_config(page_title="3. Link Locations to Exposure Data", layout="wide")
 apply_app_style()
 
-st.title("Step 3 — Link cohort to exposures")
+st.markdown(
+    """
+    <div class="iriscc-page-header">
+        <h2 class="iriscc-page-title">Step 3 — Link cohort to exposures</h2>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown("<div class='iriscc-section-title'><strong>Linking process</strong></div>", unsafe_allow_html=True)
 
 st.markdown("""
-            Now we can programmatically link the addresses in the cohort dataset to the exposure datasets.
+            <div class="iriscc-instruction">
+            Now you can programmatically link the addresses in the cohort dataset to the exposure datasets.
 
-            As seen in the previous pages, locations are represented as points, and exposure datasets are represented as surfaces. In terms of data models, these are examples of a vector and a raster dataset, respectively.
-            When a point is placed on a surface, we can extract the value at that point. 
-            
+            Locations are represented as points, and exposure datasets are represented as surfaces. In terms of data models, these are examples of a vector and a raster dataset, respectively.
+            When a point is placed on a surface, you can sample the value at that point. This is how you link the cohort to the exposure datasets.
+
             The process can be complex due to differences in spatial and temporal resolution between datasets. If a raster dataset has a spatial resolution of 100 meters, it means that each pixel represents 100 meters on the ground.
             Therefore, two points that are within this pixel will be assigned the same value, even though in reality they're up to 100 meters apart.
 
-            Press the button to run the linking procedure. The result is a table, similar to the table we saw when introducting the cohort, but with a set of new columns: one column for the value of each exposure we selected earlier.
-            """)
+            Press the button to run the linking procedure. The result is a table, similar to the table you saw when introducting the cohort, but with a set of new columns: one column for the value of each exposure you selected earlier.
+            </div>
+            """, unsafe_allow_html=True)
 
 
 run = st.button("Run linking procedure")
 
 if run:
-    input_file = "streamlit_app/Resources/cardiovascularCohort.gpkg"
-    raster_folder = "streamlit_app/Resources/exposure_datasets"
-    rasters_list = st.session_state.get("exposure_selection") + st.session_state.get("weather_selection")
-    raster_crs = 3857
-    linked_df = extract_values(input_file, raster_folder, rasters_list, raster_crs)
-    st.session_state["linked_df"] = linked_df
-    st.dataframe(linked_df, hide_index=True)
+   st.write(st.session_state["location_gdf"])
+#    raster_folder = "streamlit_app/Resources/exposure_datasets"
+#    selected_rasters_list = st.session_state.get("raster_list", [])
+
+#    raster_crs = 3857
+#    st.write(selected_rasters_list)
+
+#    st.write(raster_crs)
+
+#    linked_df = extract_values(st.session_state["location_gdf"], raster_folder, selected_rasters_list, raster_crs)
+    # st.session_state["linked_df"] = linked_df
+    # st.dataframe(linked_df, hide_index=True)
 
 
 
