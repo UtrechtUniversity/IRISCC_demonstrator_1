@@ -138,7 +138,7 @@ st.markdown(
         </div>
         <div class="iriscc-subtitle">
             This demonstrator will show you how spatial datasets can be combined with health information to understand patterns of exposure to heat and air pollution,
-            and how these exposures may be linked to health outcomes. This is a key workflow in exposure science.
+            and how these exposures may be linked to health outcomes. This is a key workflow in Health Impact Assessments (HIA).
         </div>
         <div class="iriscc-subtitle">
             These insights can be used to guide urban design, build resilient healthcare systems,
