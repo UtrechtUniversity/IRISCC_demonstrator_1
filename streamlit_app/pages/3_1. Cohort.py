@@ -41,7 +41,13 @@ st.markdown(
         </div>
         <div class="iriscc-card">
             <h3>📍 Spatial information</h3>
-            <p>Each subject is defined by a unique Subject ID and some spatial information. Often it's their residential address, but it can also be their workplace, postcode, or a frequently travelled route. It all depends on the research question and available data. This information is used to link each subject to nearby exposures.</p>
+            <p>Each subject is defined by a unique Subject ID and some spatial information. Often it's their residential address, but it can also be their workplace, postcode, or a frequently travelled route.
+            It all depends on the research question and available data. 
+            <br><br>
+            Most of the time, locations are first captured as addresses. They are converted to geographic coordinates (latitude and longitude) using either a geocoding service or the address registry of the country.
+            Then, the coordinates are saved in a common geospatial data format such as a shapefile or GeoPackage.
+            <p>
+            </p>
         </div>
         <div class="iriscc-card">
             <h3>📊 Demographics and health </h3>
@@ -208,7 +214,7 @@ else:
             Each subject has a fictional cardiovascular score that represents their normalized risk level for developing Cardiovascular diseases (CVDs) based on health and genetic factors measured in 2023.
             In practice, this could be any health data you're interested in, such as medical records or measurements.
             <br><br>
-            The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich. A geocoding service has already been used to convert their street addresses into geographic coordinates (latitude and longitude). All of the data has been entered into a CSV file.
+            The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich. A geocoding service has already been used to convert their street addresses into geographic coordinates (latitude and longitude). The data has been saved in a GeoPackage file.
             <br><br>
             </div>
         """,
