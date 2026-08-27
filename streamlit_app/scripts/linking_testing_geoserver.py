@@ -14,7 +14,6 @@ DEFAULT_BUFFER = 100
 DEFAULT_RESOLUTION = 100
 
 
-
 def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
     """Sample one WCS coverage at the locations in ``points_dataframe``."""
     total_start = perf_counter()

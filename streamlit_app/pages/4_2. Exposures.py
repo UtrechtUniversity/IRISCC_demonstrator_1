@@ -587,5 +587,3 @@ if len(raster_list) > 10:
     st.session_state["raster_list"] = []
 else:
     st.session_state["raster_list"] = raster_list
-
-st.write(st.session_state["raster_list"])

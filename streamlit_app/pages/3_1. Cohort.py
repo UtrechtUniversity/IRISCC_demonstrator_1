@@ -81,34 +81,6 @@ def load_spatial_file(uploaded_file):
 
             return gpd.read_file(shp[0])
 
-        # Parquet / Feather: read with pandas and construct geometry if possible
-        if suffix in (".parquet", ".feather"):
-            if suffix == ".parquet":
-                df = pd.read_parquet(temp_path)
-            else:
-                df = pd.read_feather(temp_path)
-
-            # If geometry column WKT
-            if "geometry" in df.columns:
-                try:
-                    geom = df["geometry"].apply(lambda x: wkt.loads(x) if isinstance(x, str) else x)
-                    gdf = gpd.GeoDataFrame(df, geometry=geom, crs=4326)
-                    return gdf
-                except Exception:
-                    pass
-
-            # Fallback: lat/lon columns
-            lat_cols = [c for c in df.columns if c.lower() in ("lat", "latitude")]
-            lon_cols = [c for c in df.columns if c.lower() in ("lon", "lng", "longitude")]
-            if lat_cols and lon_cols:
-                lat = lat_cols[0]
-                lon = lon_cols[0]
-                geom = [Point(xy) for xy in zip(df[lon], df[lat])]
-                gdf = gpd.GeoDataFrame(df, geometry=geom, crs=4326)
-                return gdf
-
-            raise ValueError("Parquet/Feather file did not contain recognizable geometry (WKT or lat/lon columns)")
-
         # Default: let geopandas try to read (gpkg, geojson, etc.)
         return gpd.read_file(temp_path)
 
@@ -214,7 +186,7 @@ if st.session_state["data_source"] == "upload":
     st.markdown(
         """
         <div class="iriscc-body">
-            Please ensure that your file is in a supported geospatial format (GeoPackage, GeoJSON, Parquet/Feather, or ZIP containing a shapefile).
+            Please ensure that your file is in a supported geospatial format (GeoPackage, GeoJSON, or ZIP containing a shapefile).
             Make sure that there is a geometry column, and a column with a unique identifier for each subject (e.g., SubjectID).
             <br><br>
         </div>
@@ -226,7 +198,7 @@ if st.session_state["data_source"] == "upload":
     uploaded_file = st.file_uploader(
         "Upload cohort file",
         label_visibility="collapsed",
-        type=["gpkg", "geojson", "json", "parquet", "feather", "zip"]
+        type=["gpkg", "geojson", "json", "zip"]
     )
 else:
     st.markdown(

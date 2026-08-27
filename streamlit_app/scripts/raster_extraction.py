@@ -36,6 +36,7 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
     timestamp = str(selected_variable_dict["time"]).strip()
     if not variable_name or not geoserver_name or not timestamp:
         raise ValueError("Raster variable, GeoServer name, and time must be non-empty.")
+    output_column = f"{variable_name}_{timestamp}"
 
     reprojection_start = perf_counter()
     original_crs = points_dataframe.crs
@@ -100,13 +101,18 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
     print(f"Timing: GeoTIFF open and point sampling = {perf_counter() - raster_start:.3f}s ({len(sampled_values)} points)")
 
     linked_points = points_dataframe.copy()
-    linked_points[variable_name] = sampled_values
+    linked_points[output_column] = sampled_values
     assert linked_points.crs == original_crs
     print(f"Timing: total link_to_raster = {perf_counter() - total_start:.3f}s")
     return linked_points
 
 
-def create_linked_dataframe(selected_variable_dict, points_dataframe, return_failures=False):
+def create_linked_dataframe(
+    selected_variable_dict,
+    points_dataframe,
+    return_failures=False,
+    progress_callback=None,
+):
     """Add one sampled exposure column for every selected raster/time.
 
     Failed layers are added as null columns and recorded in the optional
@@ -118,11 +124,14 @@ def create_linked_dataframe(selected_variable_dict, points_dataframe, return_fai
     if not all(isinstance(selection, dict) for selection in selected_variable_dict):
         raise TypeError("Each raster selection must be a dictionary.")
 
-    variable_names = [str(selection.get("variable", "")).strip() for selection in selected_variable_dict]
-    if not all(variable_names):
-        raise ValueError("Each raster selection must have a non-empty variable name.")
-    if len(variable_names) != len(set(variable_names)):
-        raise ValueError("Each raster selection must have a unique variable name.")
+    output_columns = [
+        f"{str(selection.get('variable', '')).strip()}_{str(selection.get('time', '')).strip()}"
+        for selection in selected_variable_dict
+    ]
+    if any(column == "_" or column.startswith("_") or column.endswith("_") for column in output_columns):
+        raise ValueError("Each raster selection must have a non-empty variable name and timestamp.")
+    if len(output_columns) != len(set(output_columns)):
+        raise ValueError("Each variable and timestamp combination must be unique.")
 
     total_start = perf_counter()
     linked_gdf = points_dataframe.copy()
@@ -131,14 +140,22 @@ def create_linked_dataframe(selected_variable_dict, points_dataframe, return_fai
     print(f"Timing: WCS client creation = {perf_counter() - total_start:.3f}s")
     for variable_dict in selected_variable_dict:
         variable_name = str(variable_dict["variable"]).strip()
+        timestamp = str(variable_dict["time"]).strip()
+        output_column = f"{variable_name}_{timestamp}"
         try:
+            if progress_callback:
+                progress_callback("started", output_column)
             print(f"Extracting values from raster: {variable_dict['geoserver_name']}")
             extracted_values = link_to_raster(variable_dict, linked_gdf, wcs=wcs)
-            linked_gdf[variable_name] = extracted_values[variable_name]
+            linked_gdf[output_column] = extracted_values[output_column]
+            if progress_callback:
+                progress_callback("completed", output_column)
         except Exception as error:
-            print(f"Failed to link {variable_name}: {error}")
-            linked_gdf[variable_name] = [None] * len(linked_gdf)
-            failures.append({"variable": variable_name, "error": str(error)})
+            print(f"Failed to link {output_column}: {error}")
+            linked_gdf[output_column] = [None] * len(linked_gdf)
+            failures.append({"variable": output_column, "error": str(error)})
+            if progress_callback:
+                progress_callback("failed", output_column)
 
     print(f"Timing: total create_linked_dataframe = {perf_counter() - total_start:.3f}s")
     if return_failures:
