@@ -67,7 +67,7 @@ st.markdown("<div class='iriscc-section-title'><strong>Choose your exposure vari
 st.markdown(
     """
     <div class="iriscc-body">
-        Studies show that combining exposures can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
+        Studies show that combining exposures can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">4</a>].
         Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures, but up to 10 variables or times in total.
         <br><br>
         Watch out! Different variables are available at differnet temporal and spatial resolutions, which will affect your subsequent analysis.

@@ -211,8 +211,9 @@ else:
         """
         <div class="iriscc-body">
             The sample cohort is a synthetic dataset of 100 subjects called <i>cardiovascularCohort</i>.
-            Each subject has a fictional cardiovascular score that represents their normalized risk level for developing Cardiovascular diseases (CVDs) based on health and genetic factors measured in 2023.
-            In practice, this could be any health data you're interested in, such as medical records or measurements.
+            Researchers have calculated the participants' risk of developing cardiovascular diseases (CVDs) based on health and genetic factors measured in 2023.
+            They already know that the risk of CVDs is influenced by environmental exposures [<a href="https://www.sciencedirect.com/science/article/pii/S0021915025001200">3</a>].
+            After using this demonstrator, the researchers will be able to map the pattern of exposures across different locations, and relate it to increased risk of CVDs.
             <br><br>
             The subjects live in five European cities: Amsterdam, Athens, Barcelona, Paris, and Zurich. A geocoding service has already been used to convert their street addresses into geographic coordinates (latitude and longitude). The data has been saved in a GeoPackage file.
             <br><br>

@@ -11,7 +11,9 @@ st.markdown(
 
 [2] ESMH. “A Scientist’s Opinion: Interview with Prof. Roel Vermeulen on Extreme Weather and the Impact on Our Health - ESMH.” European Science-Media Hub, 15 July 2026, https://sciencemediahub.eu/2026/07/15/a-scientists-opinion-interview-with-prof-dr-roel-vermeulen-on-extreme-weather-and-the-impact-on-our-health/.
 
-[3] Dyer, Georgia M. C., et al. “The Use of Single and Multiple Pollutant Models in Health Impact Assessment of Air Pollution: What Difference Does It Make and Where?” Environment International, vol. 213, July 2026, p. 110338. DOI.org (Crossref), https://doi.org/10.1016/j.envint.2026.110338.
+[3] Daiber, A., Rajagopalan, S., Kuntic, M., & Münzel, T. (2025). Cardiovascular risk posed by the exposome. Atherosclerosis, 405, 119222. https://doi.org/10.1016/j.atherosclerosis.2025.119222
+
+[4] Dyer, Georgia M. C., et al. “The Use of Single and Multiple Pollutant Models in Health Impact Assessment of Air Pollution: What Difference Does It Make and Where?” Environment International, vol. 213, July 2026, p. 110338. DOI.org (Crossref), https://doi.org/10.1016/j.envint.2026.110338.
 
 
 [1] de Hoogh, K., Hoek, G., Flückiger, B., Bussalleu, A., Vienneau, D., Jeong, A., Probst-Hensch, N., de Pinho, M. G. M., Mackenbach, J. D., Lakerveld, J., Beulens, J. W., Castagné, R., Delpierre, C., Kelly-Irving, M., Shen, Y., Huss, A., Dadvand, P., Pradas, M. C., Nieuwenhuijsen, M., & Vlaanderen, J. (2025). A Europe-wide characterization of the external exposome: A spatio-temporal analysis. Environment International, 200, 109542.
