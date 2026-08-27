@@ -62,7 +62,6 @@ if not exposures_ready:
 
 if exposures_ready:
     st.markdown("**Selected exposure variables**")
-    st.caption("Each entry triggers a separate WCS request and creates a separate column in the linked table.")
     selected_exposures = "\n".join(
         f"- {selection['variable']}_{selection['time']}"
         for selection in raster_list
