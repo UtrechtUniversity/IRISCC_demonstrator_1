@@ -1,15 +1,16 @@
 import os
 import tempfile
 import zipfile
-import streamlit as st
-from streamlit.components.v1 import html
-import geopandas as gpd
-import folium
-from streamlit_folium import st_folium
 from pathlib import Path
-import pandas as pd
+
+import folium
+import geopandas as gpd
+import streamlit as st
 from shapely import wkt
 from shapely.geometry import Point
+from streamlit.components.v1 import html
+from streamlit_folium import st_folium
+
 from utils.iriscc_utils import apply_app_style, visualize_gdf_as_df
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +28,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-section-title'><strong>Understanding the cohort</strong></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-section-title'><strong>Understanding the cohort</strong></div>",
+    unsafe_allow_html=True,
+)
 
 
 st.markdown(
@@ -70,7 +74,6 @@ def load_spatial_file(uploaded_file):
     suffix = Path(uploaded_file.name).suffix.lower()
 
     with tempfile.TemporaryDirectory() as tmpdir:
-
         temp_path = Path(tmpdir) / uploaded_file.name
         temp_path.write_bytes(uploaded_file.getbuffer())
 
@@ -102,7 +105,9 @@ def validate_gdf(gdf):
     # If there's a geometry column name but not proper geometry objects, try to convert WKT
     if "geometry" in gdf.columns and not isinstance(gdf.geometry.iloc[0], (Point,)):
         try:
-            gdf["geometry"] = gdf["geometry"].apply(lambda x: wkt.loads(x) if isinstance(x, str) else x)
+            gdf["geometry"] = gdf["geometry"].apply(
+                lambda x: wkt.loads(x) if isinstance(x, str) else x
+            )
         except Exception:
             pass
 
@@ -154,10 +159,10 @@ def validate_gdf(gdf):
     return gdf
 
 
-
-
-
-st.markdown("<div class='iriscc-section-title'><strong>Choose your data source</strong></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-section-title'><strong>Choose your data source</strong></div>",
+    unsafe_allow_html=True,
+)
 
 st.markdown(
     """
@@ -200,11 +205,13 @@ if st.session_state["data_source"] == "upload":
         unsafe_allow_html=True,
     )
 
-    st.warning("Warning! This is an unsecure demonstrator. When uploading real addresses, never upload real health data. Instead, upload a table with just addresses and a pseudo code and link the returned results to your health data on your local work environment. In addition, add dummy addresses to your data so addresses that belong to study participants are not recognizable. Alternatively, use synthetic data or anonymized datasets, and make sure to comply with your local data protection regulations.")
+    st.warning(
+        "Warning! This is an unsecure demonstrator. When uploading real addresses, never upload real health data. Instead, upload a table with just addresses and a pseudo code and link the returned results to your health data on your local work environment. In addition, add dummy addresses to your data so addresses that belong to study participants are not recognizable. Alternatively, use synthetic data or anonymized datasets, and make sure to comply with your local data protection regulations."
+    )
     uploaded_file = st.file_uploader(
         "Upload cohort file",
         label_visibility="collapsed",
-        type=["gpkg", "geojson", "json", "zip"]
+        type=["gpkg", "geojson", "json", "zip"],
     )
 else:
     st.markdown(
@@ -239,8 +246,15 @@ with col_load:
                 gdf = validate_gdf(gdf)
                 st.dataframe(visualize_gdf_as_df(gdf), hide_index=True)
                 try:
-                    csv = gdf.drop(columns=["geometry"], errors='ignore').to_csv(index=False)
-                    st.download_button("Download CSV", data=csv, file_name="cardiovascularCohort.csv", mime="text/csv")
+                    csv = gdf.drop(columns=["geometry"], errors="ignore").to_csv(
+                        index=False
+                    )
+                    st.download_button(
+                        "Download CSV",
+                        data=csv,
+                        file_name="cardiovascularCohort.csv",
+                        mime="text/csv",
+                    )
                 except Exception:
                     pass
 
@@ -259,8 +273,15 @@ with col_load:
                     gdf = validate_gdf(gdf)
                     st.dataframe(visualize_gdf_as_df(gdf), hide_index=True)
                     try:
-                        csv = gdf.drop(columns=["geometry"], errors='ignore').to_csv(index=False)
-                        st.download_button("Download CSV", data=csv, file_name="uploaded_cohort.csv", mime="text/csv")
+                        csv = gdf.drop(columns=["geometry"], errors="ignore").to_csv(
+                            index=False
+                        )
+                        st.download_button(
+                            "Download CSV",
+                            data=csv,
+                            file_name="uploaded_cohort.csv",
+                            mime="text/csv",
+                        )
                     except Exception:
                         pass
 
@@ -277,8 +298,12 @@ with col_vis:
         # Only allow visualizing when a dataset has been loaded for the currently selected source
         if st.session_state.get("location_gdf") is None:
             st.warning("Load cohort data first (use 'Load cohort').")
-        elif st.session_state.get("loaded_source") != st.session_state.get("data_source"):
-            st.warning("The currently selected data source has not been loaded. Please load it first.")
+        elif st.session_state.get("loaded_source") != st.session_state.get(
+            "data_source"
+        ):
+            st.warning(
+                "The currently selected data source has not been loaded. Please load it first."
+            )
         else:
             st.session_state["show_map"] = True
 
@@ -298,7 +323,6 @@ if "map_zoom" not in st.session_state:
 # Map section
 # -----------------------------------------------------------------------------
 if st.session_state["show_map"]:
-
     location_gdf = st.session_state["location_gdf"]
 
     # Ensure coordinates are in lat/lon
@@ -311,7 +335,6 @@ if st.session_state["show_map"]:
     # Controls
     # -------------------------------------------------------------------------
     with col_controls:
-
         st.subheader("Zoom to")
 
         if st.button("All subjects"):
@@ -338,41 +361,31 @@ if st.session_state["show_map"]:
     # Map
     # -------------------------------------------------------------------------
     with col_map:
-
         if st.session_state["show_all_locations"]:
-
             m = folium.Map(
                 tiles="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
-                attr='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attr='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             )
 
             bounds = [
-                [
-                    location_gdf.geometry.y.min(),
-                    location_gdf.geometry.x.min()
-                ],
-                [
-                    location_gdf.geometry.y.max(),
-                    location_gdf.geometry.x.max()
-                ]
+                [location_gdf.geometry.y.min(), location_gdf.geometry.x.min()],
+                [location_gdf.geometry.y.max(), location_gdf.geometry.x.max()],
             ]
 
             m.fit_bounds(bounds, padding=(30, 30))
 
         else:
-
             m = folium.Map(
                 location=st.session_state["map_center"],
                 zoom_start=st.session_state["map_zoom"],
                 tiles="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
-                attr='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attr='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             )
 
         # ---------------------------------------------------------------------
         # Add points
         # ---------------------------------------------------------------------
         for _, row in location_gdf.iterrows():
-
             if row.geometry is None:
                 continue
 
@@ -381,12 +394,7 @@ if st.session_state["show_map"]:
                 radius=4,
                 fill=True,
                 fill_opacity=0.8,
-                popup=str(row.get("Cardiovascular_Score", ""))
+                popup=str(row.get("Cardiovascular_Score", "")),
             ).add_to(m)
 
-        st_folium(
-            m,
-            width="100%",
-            height=700,
-            returned_objects=[]
-        )
+        st_folium(m, width="100%", height=700, returned_objects=[])

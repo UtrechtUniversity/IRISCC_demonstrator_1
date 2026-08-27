@@ -1,13 +1,15 @@
 import math
+from time import perf_counter
+
 import geopandas as gpd
 import rasterio
 from owslib.wcs import WebCoverageService
-from time import perf_counter
 
 WCS_URL = "https://exposome.uu.nl/geoserver/wcs"
 TARGET_CRS = "EPSG:3035"
 DEFAULT_BUFFER = 100
 DEFAULT_RESOLUTION = 100
+
 
 def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
     """Sample one WCS coverage at the locations in ``points_dataframe``."""
@@ -27,8 +29,13 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         raise ValueError("points_dataframe contains no points.")
     if points_dataframe.crs is None:
         raise ValueError("points_dataframe has no CRS defined.")
-    if points_dataframe.geometry.isna().any() or not points_dataframe.geometry.geom_type.eq("Point").all():
-        raise ValueError("points_dataframe must contain only non-null Point geometries.")
+    if (
+        points_dataframe.geometry.isna().any()
+        or not points_dataframe.geometry.geom_type.eq("Point").all()
+    ):
+        raise ValueError(
+            "points_dataframe must contain only non-null Point geometries."
+        )
     print(f"Timing: validation = {perf_counter() - validation_start:.3f}s")
 
     variable_name = str(selected_variable_dict["variable"]).strip()
@@ -55,9 +62,15 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         float(maxx + DEFAULT_BUFFER),
         float(maxy + DEFAULT_BUFFER),
     )
-    print(f"Timing: bounds and request preparation = {perf_counter() - bounds_start:.3f}s")
+    print(
+        f"Timing: bounds and request preparation = {perf_counter() - bounds_start:.3f}s"
+    )
 
-    print(f"Coverage id: {coverage_id}", f"Here are the bounding box coordinates: {bbox}", f"Here is the timestamp: {timestamp}")
+    print(
+        f"Coverage id: {coverage_id}",
+        f"Here are the bounding box coordinates: {bbox}",
+        f"Here is the timestamp: {timestamp}",
+    )
 
     request_start = perf_counter()
     try:
@@ -72,33 +85,47 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         )
     except Exception as e:
         raise RuntimeError(f"Failed to retrieve coverage from GeoServer: {e}")
-    print(f"Timing: getCoverage request setup/response = {perf_counter() - request_start:.3f}s")
+    print(
+        f"Timing: getCoverage request setup/response = {perf_counter() - request_start:.3f}s"
+    )
 
     read_start = perf_counter()
     data = coverage.read()
-    print(f"Timing: coverage.read() = {perf_counter() - read_start:.3f}s ({len(data) / 1024 / 1024:.2f} MiB)")
+    print(
+        f"Timing: coverage.read() = {perf_counter() - read_start:.3f}s ({len(data) / 1024 / 1024:.2f} MiB)"
+    )
     # print(data[:300])
 
     raster_start = perf_counter()
     with rasterio.MemoryFile(data) as memfile:
         with memfile.open() as dataset:
             if dataset.count != 1:
-                raise ValueError(f"Expected 1 band, got {dataset.count} — check timestamp input.")
+                raise ValueError(
+                    f"Expected 1 band, got {dataset.count} — check timestamp input."
+                )
 
-            coord_list = list(zip(points_in_raster_crs.geometry.x, points_in_raster_crs.geometry.y))
+            coord_list = list(
+                zip(points_in_raster_crs.geometry.x, points_in_raster_crs.geometry.y)
+            )
             sampled_values = []
             for coordinate in coord_list:
                 try:
                     sample = next(dataset.sample([coordinate], masked=True))
                     value = sample[0]
                     numeric_value = float(value)
-                    if value is None or getattr(value, "mask", False) or not math.isfinite(numeric_value):
+                    if (
+                        value is None
+                        or getattr(value, "mask", False)
+                        or not math.isfinite(numeric_value)
+                    ):
                         sampled_values.append(None)
                     else:
                         sampled_values.append(round(numeric_value, 2))
                 except (TypeError, ValueError, IndexError, StopIteration):
                     sampled_values.append(None)
-    print(f"Timing: GeoTIFF open and point sampling = {perf_counter() - raster_start:.3f}s ({len(sampled_values)} points)")
+    print(
+        f"Timing: GeoTIFF open and point sampling = {perf_counter() - raster_start:.3f}s ({len(sampled_values)} points)"
+    )
 
     linked_points = points_dataframe.copy()
     linked_points[output_column] = sampled_values
@@ -128,8 +155,13 @@ def create_linked_dataframe(
         f"{str(selection.get('variable', '')).strip()}_{str(selection.get('time', '')).strip()}"
         for selection in selected_variable_dict
     ]
-    if any(column == "_" or column.startswith("_") or column.endswith("_") for column in output_columns):
-        raise ValueError("Each raster selection must have a non-empty variable name and timestamp.")
+    if any(
+        column == "_" or column.startswith("_") or column.endswith("_")
+        for column in output_columns
+    ):
+        raise ValueError(
+            "Each raster selection must have a non-empty variable name and timestamp."
+        )
     if len(output_columns) != len(set(output_columns)):
         raise ValueError("Each variable and timestamp combination must be unique.")
 
@@ -157,7 +189,9 @@ def create_linked_dataframe(
             if progress_callback:
                 progress_callback("failed", output_column)
 
-    print(f"Timing: total create_linked_dataframe = {perf_counter() - total_start:.3f}s")
+    print(
+        f"Timing: total create_linked_dataframe = {perf_counter() - total_start:.3f}s"
+    )
     if return_failures:
         return linked_gdf, failures
     return linked_gdf
@@ -166,11 +200,7 @@ def create_linked_dataframe(
 if __name__ == "__main__":
     input_file = r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\cardiovascularCohort.gpkg"
     selected_variable_dict = [
-        {
-            "variable": "NO2B25_AAV",
-            "geoserver_name": "NO2B25_AAV",
-            "time": "2023"
-        }
+        {"variable": "NO2B25_AAV", "geoserver_name": "NO2B25_AAV", "time": "2023"}
     ]
 
     points_dataframe = gpd.read_file(input_file)
@@ -178,7 +208,6 @@ if __name__ == "__main__":
     gdf = create_linked_dataframe(selected_variable_dict, points_dataframe)
 
     print(gdf)
-
 
 
 # # This should work as before, but without the multiprocessing.

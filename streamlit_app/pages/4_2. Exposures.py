@@ -1,10 +1,11 @@
-import streamlit as st
-from html import escape
-from datetime import date, timedelta
-from pathlib import Path
 import base64
 import mimetypes
 import os
+from datetime import date, timedelta
+from html import escape
+from pathlib import Path
+
+import streamlit as st
 
 from utils.iriscc_utils import apply_app_style
 
@@ -22,7 +23,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-section-title'><strong>Exposure variables</strong></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-section-title'><strong>Exposure variables</strong></div>",
+    unsafe_allow_html=True,
+)
 
 
 st.markdown(
@@ -52,7 +56,6 @@ st.markdown(
 )
 
 
-
 st.markdown(
     """
     <div class="iriscc-body">
@@ -62,7 +65,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-section-title'><strong>Choose your exposure variables</strong></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-section-title'><strong>Choose your exposure variables</strong></div>",
+    unsafe_allow_html=True,
+)
 
 st.markdown(
     """
@@ -77,7 +83,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 
 # -----------------------------------------------------------------------------
@@ -203,7 +208,9 @@ def thumbnail_data_uri(relative_path):
     if not thumbnail_path.is_file():
         return ""
 
-    mime_type = mimetypes.guess_type(thumbnail_path.name)[0] or "application/octet-stream"
+    mime_type = (
+        mimetypes.guess_type(thumbnail_path.name)[0] or "application/octet-stream"
+    )
     encoded_image = base64.b64encode(thumbnail_path.read_bytes()).decode("ascii")
     return f"data:{mime_type};base64,{encoded_image}"
 
@@ -261,12 +268,18 @@ def variable_selection_to_raster_list(variable_selection_dict):
                     )
     return raster_selection
 
+
 # -----------------------------------------------------------------------------
 # Dataset definitions
 # -----------------------------------------------------------------------------
 pollutant_options = ["Annual PM10", "Annual PM2.5", "Annual O3", "Annual NO2"]
 
-weather_options = ["Annual mean temperature", "Daily mean temperature", "Daily maximum temperature", "Daily minimum temperature"]
+weather_options = [
+    "Annual mean temperature",
+    "Daily mean temperature",
+    "Daily maximum temperature",
+    "Daily minimum temperature",
+]
 
 variable_metadata = {
     "Annual PM10": {
@@ -277,7 +290,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Inhalable particles with diameters 10 micrometers and smaller",
         "thumbnail": "Resources/thumbnails/pm10.png",
-        "geoserver_name": "P10B25_AAV"
+        "geoserver_name": "P10B25_AAV",
     },
     "Annual PM2.5": {
         "spatial_resolution": "25x25m",
@@ -287,7 +300,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Inhalable particles with diameters 2.5 micrometers and smaller",
         "thumbnail": "Resources/thumbnails/pm25.png",
-        "geoserver_name": "P25B25_AAV"
+        "geoserver_name": "P25B25_AAV",
     },
     "Annual O3": {
         "spatial_resolution": "25x25m",
@@ -297,7 +310,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Ground-level ozone, the result of reactions of man-made volatile organic compounds and nitrogen oxides",
         "thumbnail": "Resources/thumbnails/o3.png",
-        "geoserver_name": "OZOB25_AAV"
+        "geoserver_name": "OZOB25_AAV",
     },
     "Annual NO2": {
         "spatial_resolution": "25x25m",
@@ -307,7 +320,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Nitrogen dioxide that gets in the air from the burning of fuel, primarily from vehicles and power plants",
         "thumbnail": "Resources/thumbnails/no2.png",
-        "geoserver_name": "NO2B25_AAV"
+        "geoserver_name": "NO2B25_AAV",
     },
     "Annual mean temperature": {
         "spatial_resolution": "1x1km",
@@ -317,7 +330,7 @@ variable_metadata = {
         "unit": "°C",
         "description": "Modeled yearly average tempeature",
         "thumbnail": "Resources/thumbnails/yearly_avg_temp.png",
-        "geoserver_name": "TMP_AVG_YEARLY"
+        "geoserver_name": "TMP_AVG_YEARLY",
     },
     "Daily mean temperature": {
         "spatial_resolution": "1x1km",
@@ -327,7 +340,7 @@ variable_metadata = {
         "unit": "°C",
         "description": "Modeled daily average temperature",
         "thumbnail": "Resources/thumbnails/daily_average_temperature.png",
-        "geoserver_name": "TMP_AVG_DAILY"
+        "geoserver_name": "TMP_AVG_DAILY",
     },
     "Daily maximum temperature": {
         "spatial_resolution": "1x1km",
@@ -337,7 +350,7 @@ variable_metadata = {
         "unit": "°C",
         "description": "Modeled daily maximum temperature",
         "thumbnail": "Resources/thumbnails/daily_maximum_temperature.png",
-        "geoserver_name": "TMP_MAX_DAILY"
+        "geoserver_name": "TMP_MAX_DAILY",
     },
     "Daily minimum temperature": {
         "spatial_resolution": "1x1km",
@@ -347,7 +360,7 @@ variable_metadata = {
         "unit": "°C",
         "description": "Modeled daily minimum temperature",
         "thumbnail": "Resources/thumbnails/daily_minimum_temperature.png",
-        "geoserver_name": "TMP_MIN_DAILY"
+        "geoserver_name": "TMP_MIN_DAILY",
     },
 }
 
@@ -364,7 +377,10 @@ def render_variable_card(name, state_key, selected):
     metadata_grid = []
     for label, value in [
         ("Spatial resolution", metadata.get("spatial_resolution", "TBD")),
-        ("Available window", f"{metadata.get('start_time', 'TBD')} to {metadata.get('end_time', 'TBD')}"),
+        (
+            "Available window",
+            f"{metadata.get('start_time', 'TBD')} to {metadata.get('end_time', 'TBD')}",
+        ),
         ("Unit", metadata.get("unit", "TBD")),
     ]:
         metadata_grid.append(
@@ -375,7 +391,7 @@ def render_variable_card(name, state_key, selected):
     with st.container():
         st.markdown(
             f"""
-            <div class="iriscc-card {'is-selected' if selected else ''}">
+            <div class="iriscc-card {"is-selected" if selected else ""}">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:0.8rem;">
                 </div>
                 <div style="display:flex; gap:1rem; align-items:stretch; flex-wrap:wrap;">
@@ -406,7 +422,11 @@ def render_variable_card(name, state_key, selected):
         )
 
         select_button_label = "Remove variable" if selected else "Select variable"
-        if st.button(select_button_label, key=f"{state_key}_{slugify(name)}_toggle", use_container_width=True):
+        if st.button(
+            select_button_label,
+            key=f"{state_key}_{slugify(name)}_toggle",
+            use_container_width=True,
+        ):
             toggle_selection(state_key, name)
             st.rerun()
 
@@ -428,12 +448,18 @@ def render_variable_card(name, state_key, selected):
                     horizontal=True,
                     key=f"{state_key}_{slugify(name)}_timeframe",
                 )
-                record["timeframe_type"] = "single_year" if timeframe_type == "Single year" else "year_range"
+                record["timeframe_type"] = (
+                    "single_year" if timeframe_type == "Single year" else "year_range"
+                )
 
                 if not valid_timeframe:
-                    st.warning("Set valid start_time and end_time years in this variable's metadata.")
+                    st.warning(
+                        "Set valid start_time and end_time years in this variable's metadata."
+                    )
                 else:
-                    available_years = [str(year) for year in range(start_time, end_time + 1)]
+                    available_years = [
+                        str(year) for year in range(start_time, end_time + 1)
+                    ]
 
                     if record["timeframe_type"] == "single_year":
                         selected_year = record.get("single_year", "")
@@ -458,7 +484,9 @@ def render_variable_card(name, state_key, selected):
                             key=f"{state_key}_{slugify(name)}_start_year",
                         )
                         end_year_options = [
-                            year for year in available_years if int(year) >= int(start_year)
+                            year
+                            for year in available_years
+                            if int(year) >= int(start_year)
                         ]
                         selected_end = record.get("end_year", "")
                         if selected_end not in end_year_options:
@@ -485,16 +513,24 @@ def render_variable_card(name, state_key, selected):
                 timeframe_type = st.radio(
                     "Timeframe type",
                     ["Single day", "Day range"],
-                    index=0 if record.get("timeframe_type") not in ("time_range", "day_range") else 1,
+                    index=0
+                    if record.get("timeframe_type") not in ("time_range", "day_range")
+                    else 1,
                     horizontal=True,
                     key=f"{state_key}_{slugify(name)}_timeframe",
                 )
-                record["timeframe_type"] = "single_day" if timeframe_type == "Single day" else "day_range"
+                record["timeframe_type"] = (
+                    "single_day" if timeframe_type == "Single day" else "day_range"
+                )
 
                 if not valid_timeframe:
-                    st.warning("Set valid start_time and end_time dates (YYYY-MM-DD) in this variable's metadata.")
+                    st.warning(
+                        "Set valid start_time and end_time dates (YYYY-MM-DD) in this variable's metadata."
+                    )
                 elif record["timeframe_type"] == "single_day":
-                    selected_day = parse_metadata_date(record.get("single_day")) or start_time
+                    selected_day = (
+                        parse_metadata_date(record.get("single_day")) or start_time
+                    )
                     selected_day = min(max(selected_day, start_time), end_time)
                     selected_day = st.date_input(
                         "Day",
@@ -508,8 +544,12 @@ def render_variable_card(name, state_key, selected):
                     record["start_date"] = ""
                     record["end_date"] = ""
                 else:
-                    selected_start = parse_metadata_date(record.get("start_date")) or start_time
-                    selected_end = parse_metadata_date(record.get("end_date")) or end_time
+                    selected_start = (
+                        parse_metadata_date(record.get("start_date")) or start_time
+                    )
+                    selected_end = (
+                        parse_metadata_date(record.get("end_date")) or end_time
+                    )
                     selected_start = min(max(selected_start, start_time), end_time)
                     selected_end = min(max(selected_end, start_time), end_time)
                     if selected_end < selected_start:
@@ -522,17 +562,20 @@ def render_variable_card(name, state_key, selected):
                         key=f"{state_key}_{slugify(name)}_day_range",
                         format="YYYY-MM-DD",
                     )
-                    if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
+                    if (
+                        isinstance(selected_range, (tuple, list))
+                        and len(selected_range) == 2
+                    ):
                         record["start_date"] = selected_range[0].isoformat()
                         record["end_date"] = selected_range[1].isoformat()
                     record["single_day"] = ""
-
 
                 record["single_year"] = ""
                 record["start_year"] = ""
                 record["end_year"] = ""
 
             st.caption(f"Selection saved: {format_timeframe_summary(record)}")
+
 
 # -----------------------------------------------------------------------------
 # UI layout
@@ -542,12 +585,16 @@ air_quality_col, weather_col = st.columns(2, gap="large")
 with air_quality_col:
     st.subheader("Air quality datasets")
     for name in pollutant_options:
-        render_variable_card(name, "pollutant_selection", name in st.session_state["pollutant_selection"])
+        render_variable_card(
+            name, "pollutant_selection", name in st.session_state["pollutant_selection"]
+        )
 
 with weather_col:
     st.subheader("Weather datasets")
     for name in weather_options:
-        render_variable_card(name, "weather_selection", name in st.session_state["weather_selection"])
+        render_variable_card(
+            name, "weather_selection", name in st.session_state["weather_selection"]
+        )
 
 # -----------------------------------------------------------------------------
 # Summary
@@ -555,7 +602,10 @@ with weather_col:
 st.markdown("---")
 
 st.subheader("Your selections")
-st.markdown('<div class="variable-section-note">These choices are stored for the next step of the workflow.</div>', unsafe_allow_html=True)
+st.markdown(
+    '<div class="variable-section-note">These choices are stored for the next step of the workflow.</div>',
+    unsafe_allow_html=True,
+)
 
 summary_col_a, summary_col_b = st.columns(2)
 
@@ -578,7 +628,9 @@ with summary_col_b:
             st.caption("No weather variables selected yet")
 
 
-raster_list = variable_selection_to_raster_list(st.session_state["weather_selection"]) + variable_selection_to_raster_list(st.session_state["pollutant_selection"])
+raster_list = variable_selection_to_raster_list(
+    st.session_state["weather_selection"]
+) + variable_selection_to_raster_list(st.session_state["pollutant_selection"])
 if len(raster_list) > 10:
     st.warning(f"""You have selected more than 10 variables or times.
                This may take a long time to process in the next step.

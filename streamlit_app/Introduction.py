@@ -1,12 +1,13 @@
-import streamlit as st
 from pathlib import Path
+
+import streamlit as st
+
 from utils.iriscc_utils import apply_app_style
 
 BASE_DIR = Path(__file__).resolve().parent
 
 st.set_page_config(page_title="IRISCC Demonstrator", layout="wide")
 apply_app_style()
-
 
 
 col1, col2 = st.columns([3, 1])
@@ -29,7 +30,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-section-title'><strong>Background</strong></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-section-title'><strong>Background</strong></div>",
+    unsafe_allow_html=True,
+)
 
 st.markdown(
     """
@@ -50,7 +54,10 @@ st.markdown(
 )
 
 
-st.markdown("<div class='iriscc-section-title'><strong>What this demonstrator does</strong></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-section-title'><strong>What this demonstrator does</strong></div>",
+    unsafe_allow_html=True,
+)
 st.markdown(
     """
     <div class="iriscc-body">

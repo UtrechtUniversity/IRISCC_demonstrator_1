@@ -1,7 +1,8 @@
-import streamlit as st
 # from ..utils.iriscc_utils import fig_to_base64
 # from ..helpers import sample_plot
 import matplotlib.pyplot as plt
+import streamlit as st
+
 from utils.iriscc_utils import apply_app_style
 
 st.set_page_config(page_title="4. Analysis", layout="wide")
@@ -17,7 +18,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-instruction'>With your cohort information linked to exposure variables, you can now begin to visualize the exposure to air pollution and temperature in the uploaded cohort.</div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-instruction'>With your cohort information linked to exposure variables, you can now begin to visualize the exposure to air pollution and temperature in the uploaded cohort.</div>",
+    unsafe_allow_html=True,
+)
 if "linked_df" in st.session_state:
     st.dataframe(st.session_state["linked_df"])
 

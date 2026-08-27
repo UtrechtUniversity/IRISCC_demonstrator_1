@@ -1,12 +1,9 @@
-import os
-from pathlib import Path
-import rasterio
-import requests
-import geopandas as gpd
-from owslib.wcs import WebCoverageService
 import math
 from time import perf_counter
 
+import geopandas as gpd
+import rasterio
+from owslib.wcs import WebCoverageService
 
 WCS_URL = "https://exposome.uu.nl/geoserver/wcs"
 TARGET_CRS = "EPSG:3035"
@@ -32,8 +29,13 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         raise ValueError("points_dataframe contains no points.")
     if points_dataframe.crs is None:
         raise ValueError("points_dataframe has no CRS defined.")
-    if points_dataframe.geometry.isna().any() or not points_dataframe.geometry.geom_type.eq("Point").all():
-        raise ValueError("points_dataframe must contain only non-null Point geometries.")
+    if (
+        points_dataframe.geometry.isna().any()
+        or not points_dataframe.geometry.geom_type.eq("Point").all()
+    ):
+        raise ValueError(
+            "points_dataframe must contain only non-null Point geometries."
+        )
     print(f"Timing: validation = {perf_counter() - validation_start:.3f}s")
 
     variable_name = str(selected_variable_dict["variable"]).strip()
@@ -59,9 +61,15 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         float(maxx + DEFAULT_BUFFER),
         float(maxy + DEFAULT_BUFFER),
     )
-    print(f"Timing: bounds and request preparation = {perf_counter() - bounds_start:.3f}s")
+    print(
+        f"Timing: bounds and request preparation = {perf_counter() - bounds_start:.3f}s"
+    )
 
-    print(f"Coverage id: {coverage_id}", f"Here are the bounding box coordinates: {bbox}", f"Here is the timestamp: {timestamp}")
+    print(
+        f"Coverage id: {coverage_id}",
+        f"Here are the bounding box coordinates: {bbox}",
+        f"Here is the timestamp: {timestamp}",
+    )
 
     request_start = perf_counter()
     try:
@@ -76,25 +84,39 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         )
     except Exception as e:
         raise RuntimeError(f"Failed to retrieve coverage from GeoServer: {e}")
-    print(f"Timing: getCoverage request setup/response = {perf_counter() - request_start:.3f}s")
+    print(
+        f"Timing: getCoverage request setup/response = {perf_counter() - request_start:.3f}s"
+    )
 
     read_start = perf_counter()
     data = coverage.read()
-    print(f"Timing: coverage.read() = {perf_counter() - read_start:.3f}s ({len(data) / 1024 / 1024:.2f} MiB)")
+    print(
+        f"Timing: coverage.read() = {perf_counter() - read_start:.3f}s ({len(data) / 1024 / 1024:.2f} MiB)"
+    )
     # print(data[:300])
 
     raster_start = perf_counter()
     with rasterio.MemoryFile(data) as memfile:
         with memfile.open() as dataset:
             if dataset.count != 1:
-                raise ValueError(f"Expected 1 band, got {dataset.count} — check timestamp input.")
+                raise ValueError(
+                    f"Expected 1 band, got {dataset.count} — check timestamp input."
+                )
 
-            coord_list = list(zip(points_in_raster_crs.geometry.x, points_in_raster_crs.geometry.y))
+            coord_list = list(
+                zip(points_in_raster_crs.geometry.x, points_in_raster_crs.geometry.y)
+            )
             sampled_values = []
             for sample in dataset.sample(coord_list, masked=True):
                 value = sample[0]
-                sampled_values.append(None if value is None or getattr(value, "mask", False) else round(float(value), 2))
-    print(f"Timing: GeoTIFF open and point sampling = {perf_counter() - raster_start:.3f}s ({len(sampled_values)} points)")
+                sampled_values.append(
+                    None
+                    if value is None or getattr(value, "mask", False)
+                    else round(float(value), 2)
+                )
+    print(
+        f"Timing: GeoTIFF open and point sampling = {perf_counter() - raster_start:.3f}s ({len(sampled_values)} points)"
+    )
 
     linked_points = points_dataframe.copy()
     linked_points[variable_name] = sampled_values
@@ -111,7 +133,10 @@ def create_linked_dataframe(selected_variable_dict, points_dataframe):
     if not all(isinstance(selection, dict) for selection in selected_variable_dict):
         raise TypeError("Each raster selection must be a dictionary.")
 
-    variable_names = [str(selection.get("variable", "")).strip() for selection in selected_variable_dict]
+    variable_names = [
+        str(selection.get("variable", "")).strip()
+        for selection in selected_variable_dict
+    ]
     if not all(variable_names):
         raise ValueError("Each raster selection must have a non-empty variable name.")
     if len(variable_names) != len(set(variable_names)):
@@ -127,17 +152,24 @@ def create_linked_dataframe(selected_variable_dict, points_dataframe):
         variable_name = str(variable_dict["variable"]).strip()
         linked_gdf[variable_name] = extracted_values[variable_name]
 
-    print(f"Timing: total create_linked_dataframe = {perf_counter() - total_start:.3f}s")
+    print(
+        f"Timing: total create_linked_dataframe = {perf_counter() - total_start:.3f}s"
+    )
     return linked_gdf
 
 
 if __name__ == "__main__":
-    selected_variable_dict = [{"variable":"Yearly average temperature",
-                              "geoserver_name":"TMP_AVG_YEARLY",
-                              "time":"2023"
-                              }]
+    selected_variable_dict = [
+        {
+            "variable": "Yearly average temperature",
+            "geoserver_name": "TMP_AVG_YEARLY",
+            "time": "2023",
+        }
+    ]
 
-    points_dataframe = gpd.read_file(r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\france_cohort.gpkg")
+    points_dataframe = gpd.read_file(
+        r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\france_cohort.gpkg"
+    )
 
     linked_df = create_linked_dataframe(selected_variable_dict, points_dataframe)
     print(linked_df.head())
@@ -149,7 +181,7 @@ if __name__ == "__main__":
     # print("Bounding box (WGS84):", bbox)
     # print("Supported CRSs:", cov_info.supportedCRS)
     # print("Supported formats:", cov_info.supportedFormats)
-    # print(cov_info.timelimits)  
+    # print(cov_info.timelimits)
     # raw = coverage.read()
 
     # Save tiff for testing
@@ -159,11 +191,6 @@ if __name__ == "__main__":
     # with open(raster_path, 'wb') as f:
     #     f.write(coverage.read())
     # print(f"Raster {coverage_id} downloaded successfully.")
-
-
-
-
-
 
 
 # def get_points_bounds(points):
@@ -182,7 +209,7 @@ if __name__ == "__main__":
 #     # return min_x, min_y, max_x, max_y
 
 
-# def query_geoserver_for_raster(raster_name): 
+# def query_geoserver_for_raster(raster_name):
 #     points = gpd.read_file(r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\NL_points_1_km.gpkg")
 
 #     x, y = get_points_bounds(points)
@@ -205,13 +232,10 @@ if __name__ == "__main__":
 #     print(len(response.content))
 
 
- 
 # # # def query_geoserver_for_raster(raster_name):
 # #     points = gpd.read_file(r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\NL_points_1_km.gpkg")
 
 # #     x, y = get_points_bounds(points)
-
-
 
 
 # #     wcs = WebCoverageService("https://exposome.uu.nl/geoserver/wcs", version="1.0.0")
@@ -284,7 +308,7 @@ if __name__ == "__main__":
 #     print(f"Sampling points from raster: {raster_name}")
 #     raster_path = Path("streamlit_app", "Resources", "exposure_datasets", raster_name).resolve()
 #     print(f"Raster path: {raster_path}")
-    
+
 #     # src = rasterio.open(raster_path)
 
 #     # coord_list = [(x, y) for x, y in zip(gdf["geometry"].x, gdf["geometry"].y)]
@@ -302,6 +326,5 @@ if __name__ == "__main__":
 #         print(f"Extracting values from raster: {raster}")
 #         extracted_values = sample_points(gdf, raster)
 #     #     gdf = gdf.merge(extracted_values, on="SubjectID")
-    
-#     # return gdf
 
+#     # return gdf

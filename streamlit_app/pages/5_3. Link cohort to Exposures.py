@@ -1,8 +1,9 @@
-import streamlit as st
 import geopandas as gpd
 import pandas as pd
-from utils.iriscc_utils import apply_app_style, visualize_gdf_as_df
+import streamlit as st
+
 from scripts.raster_extraction import create_linked_dataframe
+from utils.iriscc_utils import apply_app_style, visualize_gdf_as_df
 
 st.set_page_config(page_title="3. Link Locations to Exposure Data", layout="wide")
 apply_app_style()
@@ -16,9 +17,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<div class='iriscc-section-title'><strong>Linking process</strong></div>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='iriscc-section-title'><strong>Linking process</strong></div>",
+    unsafe_allow_html=True,
+)
 
-st.markdown("""
+st.markdown(
+    """
             <div class="iriscc-instruction">
             Now you can programmatically link the addresses in the cohort dataset to the exposure datasets.
 			<br><br>
@@ -31,7 +36,9 @@ st.markdown("""
             Press the button to run the linking procedure.
             <br><br>
             </div>
-            """, unsafe_allow_html=True)
+            """,
+    unsafe_allow_html=True,
+)
 
 
 location_gdf = st.session_state.get("location_gdf")
@@ -49,22 +56,28 @@ exposures_ready = (
     and 0 < len(raster_list) <= 10
     and all(
         isinstance(selection, dict)
-        and all(str(selection.get(key, "")).strip() for key in ("variable", "geoserver_name", "time"))
+        and all(
+            str(selection.get(key, "")).strip()
+            for key in ("variable", "geoserver_name", "time")
+        )
         for selection in raster_list
     )
 )
 
 if not cohort_ready:
-    st.warning("Load a valid cohort dataset on the Cohort page before starting the linking procedure.")
+    st.warning(
+        "Load a valid cohort dataset on the Cohort page before starting the linking procedure."
+    )
 
 if not exposures_ready:
-    st.warning("Select at least one pollutant or temperature exposure, with no more than 10 raster times, on the Exposures page before starting the linking procedure.")
+    st.warning(
+        "Select at least one pollutant or temperature exposure, with no more than 10 raster times, on the Exposures page before starting the linking procedure."
+    )
 
 if exposures_ready:
     st.markdown("**Selected exposure variables**")
     selected_exposures = "\n".join(
-        f"- {selection['variable']}_{selection['time']}"
-        for selection in raster_list
+        f"- {selection['variable']}_{selection['time']}" for selection in raster_list
     )
     st.markdown(selected_exposures)
 
@@ -73,8 +86,10 @@ run = st.button(
     disabled=not (cohort_ready and exposures_ready),
 )
 
+
 def get_data():
     return st.session_state.get("linked_df")
+
 
 @st.cache_data
 def convert_for_download(_df):
@@ -90,7 +105,10 @@ if run:
     st.session_state.pop("linked_df", None)
     st.session_state.pop("linking_failures", None)
     try:
-        with st.status("Linking exposure variables...", expanded=True) as linking_status:
+        with st.status(
+            "Linking exposure variables...", expanded=True
+        ) as linking_status:
+
             def update_linking_status(state, variable_name):
                 if state == "started":
                     linking_status.write(f"Linking `{variable_name}`...")
@@ -117,7 +135,9 @@ linked_df_for_download = get_data()
 if linked_df_for_download is not None:
     linking_failures = st.session_state.get("linking_failures", [])
     if linking_failures:
-        failed_variables = ", ".join(failure["variable"] for failure in linking_failures)
+        failed_variables = ", ".join(
+            failure["variable"] for failure in linking_failures
+        )
         st.warning(
             f"Could not link these exposure layers: {failed_variables}. "
             "Their columns were added with null values."
@@ -128,7 +148,6 @@ if linked_df_for_download is not None:
     st.dataframe(visualize_gdf_as_df(linked_df_for_download), hide_index=True)
 
     csv = convert_for_download(linked_df_for_download)
-
 
     print(f"Type: {type(csv)}, Length: {len(csv)}")
 
@@ -150,12 +169,10 @@ if linked_df_for_download is not None:
         disabled=linked_df_for_download.empty,
     )
 
-   
     # st.session_state["linked_df"] = linked_df
     # st.dataframe(linked_df, hide_index=True)
     #
     # st.session_state["linked_df"] = linked_df
-
 
     # exposure_to_filename = {
     #     "Annual PM10": "TEMP_AVG_20201201.tif"
@@ -164,12 +181,12 @@ if linked_df_for_download is not None:
     # What do I want ot happen? I want to go back to being the awesome productive and hardworking developer that I once was. Use those practices. Be less tired and lazy.
     # Okay, what do I need to do now? I need to create the linking process first, and make sure it works.
     # Then I need to select the variables.
-    # Then I need to download them for each country, and do the merging. 
+    # Then I need to download them for each country, and do the merging.
 
 
 code_expander = st.expander("Want to see the code used in the linking process?")
 with code_expander:
-    st.write('''
+    st.write("""
     ```python
         def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
             total_start = perf_counter()
@@ -290,5 +307,4 @@ with code_expander:
         points_dataframe=location_gdf,
         return_failures=True,
         )
-    '''
-    )
+    """)

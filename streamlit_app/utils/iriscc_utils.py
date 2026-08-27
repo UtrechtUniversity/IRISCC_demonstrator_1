@@ -1,7 +1,9 @@
-import io
 import base64
+import io
+
 import matplotlib.pyplot as plt
-import pandas as pd
+
+# import pandas as pd
 import streamlit as st
 
 
@@ -352,6 +354,7 @@ def apply_app_style():
         unsafe_allow_html=True,
     )
 
+
 def render_story_block(icon, title, paragraphs):
     paragraph_html = "".join(f"<p>{paragraph}</p>" for paragraph in paragraphs)
     st.markdown(
@@ -373,28 +376,17 @@ def render_story_block(icon, title, paragraphs):
 def dataframe_to_html(df, max_rows=10):
     table_html = df.to_html(max_rows=max_rows, index=False)
     table_html = table_html.replace(
-        "<table",
-        '<table style="display:block; overflow-y:auto; max-height:400px;"'
+        "<table", '<table style="display:block; overflow-y:auto; max-height:400px;"'
     )
     return table_html
 
+
 def fig_to_base64(fig):
     buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight')
+    fig.savefig(buf, format="png", bbox_inches="tight")
     plt.close(fig)
     return base64.b64encode(buf.getvalue()).decode()
 
-def safe_read_geopackage(path):
-    try:
-        import geopandas as gpd
-    except Exception:
-        return None, 'geopandas not installed'
-
-    try:
-        gdf = gpd.read_file(path)
-        return gdf, None
-    except Exception as e:
-        return None, str(e)
 
 def visualize_gdf_as_df(gdf):
     """Return an Arrow-safe preview dataframe for Streamlit tables."""
@@ -405,6 +397,7 @@ def visualize_gdf_as_df(gdf):
             preview["longitude"] = gdf.geometry.x
             preview["latitude"] = gdf.geometry.y
         except Exception:
-            pass
+            preview["longitude"] = None
+            preview["latitude"] = None
 
     return preview
