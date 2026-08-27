@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 from shapely import wkt
 from shapely.geometry import Point
-from utils.iriscc_utils import apply_app_style
+from utils.iriscc_utils import apply_app_style, visualize_gdf_as_df
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -176,6 +176,9 @@ def validate_gdf(gdf):
     return gdf
 
 
+
+
+
 st.markdown("<div class='iriscc-section-title'><strong>Choose your data source</strong></div>", unsafe_allow_html=True)
 
 st.markdown(
@@ -189,7 +192,13 @@ st.markdown(
 )
 
 
-source = st.radio("", ("Sample dataset", "Upload your own"), index=0, horizontal=True)
+source = st.radio(
+    "Data source",
+    ("Sample dataset", "Upload your own"),
+    index=0,
+    horizontal=True,
+    label_visibility="collapsed",
+)
 st.session_state["data_source"] = "sample" if source == "Sample dataset" else "upload"
 
 # If the user switched the chosen data source, clear any shown map to avoid mixing sources
@@ -215,7 +224,8 @@ if st.session_state["data_source"] == "upload":
 
     st.warning("Warning! This is an unsecure demonstrator. When uploading real addresses, never upload real health data. Instead, upload a table with just addresses and a pseudo code and link the returned results to your health data on your local work environment. In addition, add dummy addresses to your data so addresses that belong to study participants are not recognizable. Alternatively, use synthetic data or anonymized datasets, and make sure to comply with your local data protection regulations.")
     uploaded_file = st.file_uploader(
-        "",
+        "Upload cohort file",
+        label_visibility="collapsed",
         type=["gpkg", "geojson", "json", "parquet", "feather", "zip"]
     )
 else:
@@ -248,15 +258,18 @@ with col_load:
             else:
                 gdf = gpd.read_file(path)
                 gdf = validate_gdf(gdf)
-                st.session_state["location_gdf"] = gdf
-                st.session_state["loaded_source"] = "sample"
-                st.success(f"Loaded sample cohort ({len(gdf)} records)")
-                st.dataframe(gdf, hide_index=True)
+                st.dataframe(visualize_gdf_as_df(gdf), hide_index=True)
                 try:
                     csv = gdf.drop(columns=["geometry"], errors='ignore').to_csv(index=False)
                     st.download_button("Download CSV", data=csv, file_name="cardiovascularCohort.csv", mime="text/csv")
                 except Exception:
                     pass
+
+            st.session_state["location_gdf"] = gdf
+            st.session_state["loaded_source"] = "sample"
+            st.session_state["uploaded_file_name"] = "cardiovascularCohort"
+
+            st.success(f"Loaded sample cohort ({len(gdf)} records)")
 
         else:
             if uploaded_file is None:
@@ -265,9 +278,7 @@ with col_load:
                 try:
                     gdf = load_spatial_file(uploaded_file)
                     gdf = validate_gdf(gdf)
-                    st.session_state["location_gdf"] = gdf
-                    st.success(f"Loaded uploaded cohort ({len(gdf)} records)")
-                    st.dataframe(gdf, hide_index=True)
+                    st.dataframe(visualize_gdf_as_df(gdf), hide_index=True)
                     try:
                         csv = gdf.drop(columns=["geometry"], errors='ignore').to_csv(index=False)
                         st.download_button("Download CSV", data=csv, file_name="uploaded_cohort.csv", mime="text/csv")
@@ -276,6 +287,11 @@ with col_load:
 
                 except Exception as e:
                     st.error(f"Failed to load uploaded file: {e}")
+
+                st.session_state["location_gdf"] = gdf
+                st.session_state["loaded_source"] = "upload"
+                st.session_state["uploaded_file_name"] = uploaded_file.name
+                st.success(f"Loaded uploaded cohort ({len(gdf)} records)")
 
 with col_vis:
     if st.button("Visualize cohort on map"):

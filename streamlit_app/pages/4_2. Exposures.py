@@ -29,20 +29,20 @@ st.markdown(
     """
     <div class="iriscc-grid">
         <div class="iriscc-card">
-            <h3>Types of exposures</h3>
+            <h3>🔠 Types of exposures</h3>
             <p>This demonstrator focuses on two main types of exposure variables: air quality and temperature data.
             <br><br>
             In the field of exposomics, exposure variables are environmental factors that individuals or populations are exposed to, which can have an impact on their health.
             These variables can be physical (e.g., temperature, noise), chemical (e.g., air pollutants, pesticides), related to the built environment (e.g. greenspaces, walkability), and more.
             </div>
         <div class="iriscc-card">
-            <h3>Estimating exposure</h3>
+            <h3>📏 Estimating exposure</h3>
             <p>Exposure can be estimated in various ways. It can be measured directly, for example by using sensors in houses, collecting surveys, or giving wearable devices to cohort members. Or it can be estimated based on models,
             which is useful when some exposures are impossible to measure comprehensively. Models use data from measurement stations
             and other data sources, such as satellite imagery, to estimate exposure levels across different locations and times. </p>
         </div>
         <div class="iriscc-card">
-            <h3>Data sources</h3>
+            <h3>🗂️ Data sources</h3>
             <p>There are many data catalogues on the internet where you can find datasets of modeled exposure variables. In this demonstrator, we'll use datasets created in the <a href=\"https://expanseproject.eu/">Expanse Project</a>.
             All of the datasets created in this project are available in a <a href=\"https://exposome.uu.nl/">data catalogue</a> so other researchers can access them for their own studies.</p>
         </div>
@@ -68,7 +68,7 @@ st.markdown(
     """
     <div class="iriscc-body">
         Studies show that combining exposures can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">3</a>].
-        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures. Make sure to select at least one from each category.
+        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures, but up to 10 variables or times in total.
         <br><br>
         Watch out! Different variables are available at differnet temporal and spatial resolutions, which will affect your subsequent analysis.
         Think about your research question and the available data when making your selections. Do you want to compare exposures across years, or do you want to focus on a specific year? Do you want to look at daily temperature variations, or are you more interested in long-term trends?
@@ -209,47 +209,64 @@ def thumbnail_data_uri(relative_path):
 
 
 def variable_selection_to_raster_list(variable_selection_dict):
-    raster_list = []
+    raster_selection = []
     for variable, record in variable_selection_dict.items():
+        geoserver_name = variable_metadata[variable]["geoserver_name"]
+
         if record.get("timeframe_type") == "single_day":
-            date_name = record.get("single_day", "").replace("-", "_")
-            raster_list.append(f"{variable_metadata[variable]['raster_prefix']}_{date_name}")
+            selected_date = parse_metadata_date(record.get("single_day"))
+            if selected_date:
+                raster_selection.append(
+                    {
+                        "variable": variable,
+                        "geoserver_name": geoserver_name,
+                        "time": selected_date.isoformat(),
+                    }
+                )
         elif record.get("timeframe_type") == "day_range":
             start_date = parse_metadata_date(record.get("start_date"))
             end_date = parse_metadata_date(record.get("end_date"))
             if start_date and end_date and start_date <= end_date:
                 current_date = start_date
                 while current_date <= end_date:
-                    date_name = current_date.isoformat().replace("-", "_")
-                    raster_list.append(f"{variable_metadata[variable]['raster_prefix']}_{date_name}")
+                    raster_selection.append(
+                        {
+                            "variable": variable,
+                            "geoserver_name": geoserver_name,
+                            "time": current_date.isoformat(),
+                        }
+                    )
                     current_date += timedelta(days=1)
         elif record.get("timeframe_type") == "single_year":
-            year_name = str(record.get("single_year", "")).replace("-", "_")
-            raster_list.append(f"{variable_metadata[variable]['raster_prefix']}_{year_name}")
+            selected_year = parse_metadata_year(record.get("single_year"))
+            if selected_year:
+                raster_selection.append(
+                    {
+                        "variable": variable,
+                        "geoserver_name": geoserver_name,
+                        "time": f"{selected_year:04d}",
+                    }
+                )
         elif record.get("timeframe_type") == "year_range":
             start_year = parse_metadata_year(record.get("start_year"))
             end_year = parse_metadata_year(record.get("end_year"))
             if start_year and end_year and start_year <= end_year:
                 for year in range(start_year, end_year + 1):
-                    year_name = str(year).replace("-", "_")
-                    raster_list.append(f"{variable_metadata[variable]['raster_prefix']}_{year_name}")
-    return raster_list
+                    raster_selection.append(
+                        {
+                            "variable": variable,
+                            "geoserver_name": geoserver_name,
+                            "time": f"{year:04d}",
+                        }
+                    )
+    return raster_selection
 
 # -----------------------------------------------------------------------------
 # Dataset definitions
 # -----------------------------------------------------------------------------
-pollutant_options = {
-    "Annual PM10": "PM10",
-    "Annual PM2.5": "PM2_5",
-    "Annual O3": "O3",
-    "Annual NO2": "NO2",
-}
+pollutant_options = ["Annual PM10", "Annual PM2.5", "Annual O3", "Annual NO2"]
 
-weather_options = {
-    "Annual mean temperature": "TMP_AVG_YEARLY",
-    "Daily mean temperature": "TMP_AVG_DAILY",
-    "Daily maximum temperature": "TMP_MAX_DAILY",
-}
+weather_options = ["Annual mean temperature", "Daily mean temperature", "Daily maximum temperature", "Daily minimum temperature"]
 
 variable_metadata = {
     "Annual PM10": {
@@ -260,7 +277,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Inhalable particles with diameters 10 micrometers and smaller",
         "thumbnail": "Resources/thumbnails/pm10.png",
-        "raster_prefix": "PM10"
+        "geoserver_name": "P10B25_AAV"
     },
     "Annual PM2.5": {
         "spatial_resolution": "25x25m",
@@ -270,7 +287,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Inhalable particles with diameters 2.5 micrometers and smaller",
         "thumbnail": "Resources/thumbnails/pm25.png",
-        "raster_prefix": "PM2_5"
+        "geoserver_name": "P25B25_AAV"
     },
     "Annual O3": {
         "spatial_resolution": "25x25m",
@@ -280,7 +297,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Ground-level ozone, the result of reactions of man-made volatile organic compounds and nitrogen oxides",
         "thumbnail": "Resources/thumbnails/o3.png",
-        "raster_prefix": "O3"
+        "geoserver_name": "OZOB25_AAV"
     },
     "Annual NO2": {
         "spatial_resolution": "25x25m",
@@ -290,7 +307,7 @@ variable_metadata = {
         "unit": "μg/m³",
         "description": "Nitrogen dioxide that gets in the air from the burning of fuel, primarily from vehicles and power plants",
         "thumbnail": "Resources/thumbnails/no2.png",
-        "raster_prefix": "NO2"
+        "geoserver_name": "NO2B25_AAV"
     },
     "Annual mean temperature": {
         "spatial_resolution": "1x1km",
@@ -300,7 +317,7 @@ variable_metadata = {
         "unit": "°C",
         "description": "Modeled yearly average tempeature",
         "thumbnail": "Resources/thumbnails/yearly_avg_temp.png",
-        "raster_prefix": "TMP_AVG"
+        "geoserver_name": "TMP_AVG_YEARLY"
     },
     "Daily mean temperature": {
         "spatial_resolution": "1x1km",
@@ -310,7 +327,7 @@ variable_metadata = {
         "unit": "°C",
         "description": "Modeled daily average temperature",
         "thumbnail": "Resources/thumbnails/daily_average_temperature.png",
-        "raster_prefix": "TMP_AVG"
+        "geoserver_name": "TMP_AVG_DAILY"
     },
     "Daily maximum temperature": {
         "spatial_resolution": "1x1km",
@@ -320,12 +337,22 @@ variable_metadata = {
         "unit": "°C",
         "description": "Modeled daily maximum temperature",
         "thumbnail": "Resources/thumbnails/daily_maximum_temperature.png",
-        "raster_prefix": "TMP_MAX"
+        "geoserver_name": "TMP_MAX_DAILY"
+    },
+    "Daily minimum temperature": {
+        "spatial_resolution": "1x1km",
+        "temporal_mode": "daily",
+        "start_time": "2020-01-01",
+        "end_time": "2024-12-31",
+        "unit": "°C",
+        "description": "Modeled daily minimum temperature",
+        "thumbnail": "Resources/thumbnails/daily_minimum_temperature.png",
+        "geoserver_name": "TMP_MIN_DAILY"
     },
 }
 
 
-def render_variable_card(name, desc, state_key, selected):
+def render_variable_card(name, state_key, selected):
     metadata = variable_metadata.get(name, {})
     thumbnail_uri = thumbnail_data_uri(metadata.get("thumbnail", ""))
     thumbnail_html = (
@@ -369,7 +396,7 @@ def render_variable_card(name, desc, state_key, selected):
                     </div>
                     <div style="flex: 1 1 320px; min-width: 280px;">
                         <div class="iriscc-card-title">{escape(name)}</div>
-                        <div class="iriscc-card-subtitle" style="margin-bottom:0.9rem;">{escape(metadata.get("description", desc))}</div>
+                        <div class="iriscc-card-subtitle" style="margin-bottom:0.9rem;">{escape(metadata.get("description"))}</div>
                         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:0.6rem;">{metadata_grid_html}</div>
                     </div>
                 </div>
@@ -514,13 +541,13 @@ air_quality_col, weather_col = st.columns(2, gap="large")
 
 with air_quality_col:
     st.subheader("Air quality datasets")
-    for name, desc in pollutant_options.items():
-        render_variable_card(name, desc, "pollutant_selection", name in st.session_state["pollutant_selection"])
+    for name in pollutant_options:
+        render_variable_card(name, "pollutant_selection", name in st.session_state["pollutant_selection"])
 
 with weather_col:
     st.subheader("Weather datasets")
-    for name, desc in weather_options.items():
-        render_variable_card(name, desc, "weather_selection", name in st.session_state["weather_selection"])
+    for name in weather_options:
+        render_variable_card(name, "weather_selection", name in st.session_state["weather_selection"])
 
 # -----------------------------------------------------------------------------
 # Summary
@@ -557,5 +584,8 @@ if len(raster_list) > 10:
                This may take a long time to process in the next step.
                Reduce the number of variables or narrow
                the timeframes before continuing.""")
+    st.session_state["raster_list"] = []
 else:
     st.session_state["raster_list"] = raster_list
+
+st.write(st.session_state["raster_list"])

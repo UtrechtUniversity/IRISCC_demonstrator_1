@@ -395,3 +395,16 @@ def safe_read_geopackage(path):
         return gdf, None
     except Exception as e:
         return None, str(e)
+
+def visualize_gdf_as_df(gdf):
+    """Return an Arrow-safe preview dataframe for Streamlit tables."""
+    preview = gdf.drop(columns=["geometry"], errors="ignore").copy()
+
+    if "geometry" in gdf.columns:
+        try:
+            preview["longitude"] = gdf.geometry.x
+            preview["latitude"] = gdf.geometry.y
+        except Exception:
+            pass
+
+    return preview
