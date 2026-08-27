@@ -335,7 +335,8 @@ if st.session_state["show_map"]:
         if st.session_state["show_all_locations"]:
 
             m = folium.Map(
-                tiles="CartoDB positron"
+                tiles="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+                attr='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             )
 
             bounds = [
@@ -356,7 +357,8 @@ if st.session_state["show_map"]:
             m = folium.Map(
                 location=st.session_state["map_center"],
                 zoom_start=st.session_state["map_zoom"],
-                tiles="CartoDB positron"
+                tiles="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+                attr='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             )
 
         # ---------------------------------------------------------------------
