@@ -42,7 +42,7 @@ st.markdown(
         of how these exposures may be linked to health outcomes. This is a key workflow in Health Impact Assessments (HIA).
         <br><br>        
         These insights can be used to guide urban design, build resilient healthcare systems,
-        inform local public health interventions, and develop strategic public policy (at national and global levels) that incporates health considerations [<a href="https://sciencemediahub.eu/2026/07/15/a-scientists-opinion-interview-with-prof-dr-roel-vermeulen-on-extreme-weather-and-the-impact-on-our-health/">2</a>].
+        inform local public health interventions, and develop strategic public policy (at national and global levels) that incorporates health considerations [<a href="https://sciencemediahub.eu/2026/07/15/a-scientists-opinion-interview-with-prof-dr-roel-vermeulen-on-extreme-weather-and-the-impact-on-our-health/">2</a>].
         <br><br>
     </div>
     """,
