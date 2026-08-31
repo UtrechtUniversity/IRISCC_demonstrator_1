@@ -6,20 +6,21 @@ import rasterio
 from owslib.wcs import WebCoverageService
 
 WCS_URL = "https://exposome.uu.nl/geoserver/wcs"
-TARGET_CRS = "EPSG:3035"
+TARGET_CRS = "EPSG:3857"
 DEFAULT_BUFFER = 100
-DEFAULT_RESOLUTION = 100
 
 
 def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
     """Sample one WCS coverage at the locations in ``points_dataframe``."""
+    print("Here is the input selected_variable_dict:", selected_variable_dict)
+
     total_start = perf_counter()
 
     validation_start = perf_counter()
     if not isinstance(selected_variable_dict, dict):
         raise TypeError("Each raster selection must be a dictionary.")
 
-    required_keys = {"variable", "geoserver_name", "time"}
+    required_keys = {"variable", "geoserver_name", "time", "pixel_size"}
     missing_keys = required_keys.difference(selected_variable_dict)
     if missing_keys:
         raise ValueError(f"Raster selection is missing: {sorted(missing_keys)}")
@@ -41,8 +42,14 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
     variable_name = str(selected_variable_dict["variable"]).strip()
     geoserver_name = str(selected_variable_dict["geoserver_name"]).strip()
     timestamp = str(selected_variable_dict["time"]).strip()
+    try:
+        pixel_size = float(selected_variable_dict["pixel_size"])
+    except (TypeError, ValueError):
+        raise ValueError("Raster pixel_size must be a positive number.")
     if not variable_name or not geoserver_name or not timestamp:
         raise ValueError("Raster variable, GeoServer name, and time must be non-empty.")
+    if not math.isfinite(pixel_size) or pixel_size <= 0:
+        raise ValueError("Raster pixel_size must be a positive number.")
 
     reprojection_start = perf_counter()
     original_crs = points_dataframe.crs
@@ -79,8 +86,8 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
             crs=TARGET_CRS,
             format="GeoTIFF",
             time=[timestamp],
-            resx=DEFAULT_RESOLUTION,
-            resy=DEFAULT_RESOLUTION,
+            resx=pixel_size,
+            resy=pixel_size,
         )
     except Exception as e:
         raise RuntimeError(f"Failed to retrieve coverage from GeoServer: {e}")
@@ -161,14 +168,15 @@ def create_linked_dataframe(selected_variable_dict, points_dataframe):
 if __name__ == "__main__":
     selected_variable_dict = [
         {
-            "variable": "Yearly average temperature",
+            "variable": "TMP_AVG_YEARLY",
             "geoserver_name": "TMP_AVG_YEARLY",
             "time": "2023",
+            "pixel_size": 1000,
         }
     ]
 
     points_dataframe = gpd.read_file(
-        r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\france_cohort.gpkg"
+        r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\NL_points_1_km.gpkg"
     )
 
     linked_df = create_linked_dataframe(selected_variable_dict, points_dataframe)

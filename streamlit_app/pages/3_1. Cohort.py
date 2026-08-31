@@ -15,6 +15,15 @@ from utils.iriscc_utils import apply_app_style, visualize_gdf_as_df
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+CUSTOM_DATASET_BBOX = (
+    -2909511,
+    4042059,
+    5009377.09,
+    11528960,
+)
+
+CUSTOM_DATASET_BBOX_CRS = "EPSG:3857"
+
 st.set_page_config(page_title="1. Cohort", layout="wide")
 apply_app_style()
 
@@ -94,7 +103,7 @@ def load_spatial_file(uploaded_file):
         return gpd.read_file(temp_path)
 
 
-def validate_gdf(gdf):
+def validate_gdf(gdf, bounding_box=None):
 
     if gdf is None:
         raise ValueError("No data loaded")
@@ -140,6 +149,17 @@ def validate_gdf(gdf):
     allowed = {"Point"}
     if geom_types - allowed:
         raise ValueError(f"Only Point geometries allowed. Found: {geom_types}")
+
+    if bounding_box is not None:
+        min_x, min_y, max_x, max_y = bounding_box
+        bbox_gdf = gdf.to_crs(CUSTOM_DATASET_BBOX_CRS)
+        within_bbox = (
+            bbox_gdf.geometry.x.between(min_x, max_x)
+            & bbox_gdf.geometry.y.between(min_y, max_y)
+        )
+        gdf = gdf.loc[within_bbox].copy()
+        if gdf.empty:
+            raise ValueError("No points remain inside the configured bounding box.")
 
     MAX = 5000
     if len(gdf) > MAX:
@@ -200,6 +220,7 @@ if st.session_state["data_source"] == "upload":
             Please ensure that your file is in a supported geospatial format (GeoPackage, GeoJSON, or ZIP containing a shapefile).
             Make sure that there is a geometry column, and a column with a unique identifier for each subject (e.g., SubjectID).
             <br><br>
+            The demonstrator currently only supports European locations. If your dataset contains points outside Europe, they'll be dropped.
         </div>
         """,
         unsafe_allow_html=True,
@@ -270,7 +291,12 @@ with col_load:
             else:
                 try:
                     gdf = load_spatial_file(uploaded_file)
-                    gdf = validate_gdf(gdf)
+                    uploaded_count = len(gdf)
+                    gdf = validate_gdf(gdf, bounding_box=CUSTOM_DATASET_BBOX)
+                    if len(gdf) < uploaded_count:
+                        st.warning(
+                            "Points outside Europe have been dropped from the uploaded dataset."
+                        )
                     st.dataframe(visualize_gdf_as_df(gdf), hide_index=True)
                     try:
                         csv = gdf.drop(columns=["geometry"], errors="ignore").to_csv(

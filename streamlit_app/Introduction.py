@@ -42,11 +42,11 @@ st.markdown(
         Research has shown that combined exposure to these environmental risk factors presents a greater risk to health than the sum of their individual risks [<a href="https://www.eea.europa.eu/en/newsroom/editorial/combined-effects-of-air-pollution-and-heat-exposure">1</a>].
         Worryingly, climate change is projected to not only increase the frequency and intensity of heatwaves, but to impact the emission of air pollutants during extreme events.
         <br><br>
-        This demonstrator allows you to link data on air pollutants and temperature to existing cohorts, thereby relevaling spatial patterns and enabling the analysis 
-        of how these exposures may be linked to health outcomes. This is a key workflow in Health Impact Assessments (HIA).
+        This demonstrator allows you to link data on air pollutants and temperature to existing cohorts, thereby revealing spatial patterns and enabling the analysis 
+        of how these exposures may be linked to health outcomes. This is a key workflow in Health Risk Assessments (HRA).
         <br><br>        
         These insights can be used to guide urban design, build resilient healthcare systems,
-        inform local public health interventions, and develop strategic public policy (at national and global levels) that incporates health considerations [<a href="https://sciencemediahub.eu/2026/07/15/a-scientists-opinion-interview-with-prof-dr-roel-vermeulen-on-extreme-weather-and-the-impact-on-our-health/">2</a>].
+        inform local public health interventions, and develop strategic public policy (at national and global levels) that addresses health considerations [<a href="https://sciencemediahub.eu/2026/07/15/a-scientists-opinion-interview-with-prof-dr-roel-vermeulen-on-extreme-weather-and-the-impact-on-our-health/">2</a>].
         <br><br>
     </div>
     """,

@@ -219,6 +219,7 @@ def variable_selection_to_raster_list(variable_selection_dict):
     raster_selection = []
     for variable, record in variable_selection_dict.items():
         geoserver_name = variable_metadata[variable]["geoserver_name"]
+        pixel_size = variable_metadata[variable]["pixel_size"]
 
         if record.get("timeframe_type") == "single_day":
             selected_date = parse_metadata_date(record.get("single_day"))
@@ -228,6 +229,7 @@ def variable_selection_to_raster_list(variable_selection_dict):
                         "variable": variable,
                         "geoserver_name": geoserver_name,
                         "time": selected_date.isoformat(),
+                        "pixel_size": pixel_size,
                     }
                 )
         elif record.get("timeframe_type") == "day_range":
@@ -241,6 +243,7 @@ def variable_selection_to_raster_list(variable_selection_dict):
                             "variable": variable,
                             "geoserver_name": geoserver_name,
                             "time": current_date.isoformat(),
+                            "pixel_size": pixel_size,
                         }
                     )
                     current_date += timedelta(days=1)
@@ -252,6 +255,7 @@ def variable_selection_to_raster_list(variable_selection_dict):
                         "variable": variable,
                         "geoserver_name": geoserver_name,
                         "time": f"{selected_year:04d}",
+                        "pixel_size": pixel_size,
                     }
                 )
         elif record.get("timeframe_type") == "year_range":
@@ -264,6 +268,7 @@ def variable_selection_to_raster_list(variable_selection_dict):
                             "variable": variable,
                             "geoserver_name": geoserver_name,
                             "time": f"{year:04d}",
+                            "pixel_size": pixel_size,
                         }
                     )
     return raster_selection
@@ -284,6 +289,7 @@ weather_options = [
 variable_metadata = {
     "Annual PM10": {
         "spatial_resolution": "25x25m",
+        "pixel_size": 25,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
@@ -294,6 +300,7 @@ variable_metadata = {
     },
     "Annual PM2.5": {
         "spatial_resolution": "25x25m",
+        "pixel_size": 25,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
@@ -304,6 +311,7 @@ variable_metadata = {
     },
     "Annual O3": {
         "spatial_resolution": "25x25m",
+        "pixel_size": 25,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
@@ -314,6 +322,7 @@ variable_metadata = {
     },
     "Annual NO2": {
         "spatial_resolution": "25x25m",
+        "pixel_size": 25,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
@@ -324,6 +333,7 @@ variable_metadata = {
     },
     "Annual mean temperature": {
         "spatial_resolution": "1x1km",
+        "pixel_size": 1000,
         "temporal_mode": "yearly",
         "start_time": "2020",
         "end_time": "2024",
@@ -334,6 +344,7 @@ variable_metadata = {
     },
     "Daily mean temperature": {
         "spatial_resolution": "1x1km",
+        "pixel_size": 1000,
         "temporal_mode": "daily",
         "start_time": "2020-01-01",
         "end_time": "2024-12-31",
@@ -344,6 +355,7 @@ variable_metadata = {
     },
     "Daily maximum temperature": {
         "spatial_resolution": "1x1km",
+        "pixel_size": 1000,
         "temporal_mode": "daily",
         "start_time": "2020-01-01",
         "end_time": "2024-12-31",
@@ -354,6 +366,7 @@ variable_metadata = {
     },
     "Daily minimum temperature": {
         "spatial_resolution": "1x1km",
+        "pixel_size": 1000,
         "temporal_mode": "daily",
         "start_time": "2020-01-01",
         "end_time": "2024-12-31",

@@ -33,7 +33,7 @@ st.markdown(
             It's important to consider differences in spatial resolution between datasets. If a raster dataset has a spatial resolution of 100 meters, it means that each pixel represents 100 meters on the ground.
             Therefore, two points that are within this pixel will be assigned the same value, even though in reality they're up to 100 meters apart.
             <br><br>
-            Press the button to run the linking procedure.
+            Press the button to run the linking procedure. Be patient, as this may take a few minutes depending on the number of locations and exposure datasets.
             <br><br>
             </div>
             """,
@@ -77,7 +77,7 @@ if not exposures_ready:
 if exposures_ready:
     st.markdown("**Selected exposure variables**")
     selected_exposures = "\n".join(
-        f"- {selection['variable']}_{selection['time']}" for selection in raster_list
+        f"- {selection['variable']} {selection['time']}" for selection in raster_list
     )
     st.markdown(selected_exposures)
 
@@ -169,20 +169,6 @@ if linked_df_for_download is not None:
         disabled=linked_df_for_download.empty,
     )
 
-    # st.session_state["linked_df"] = linked_df
-    # st.dataframe(linked_df, hide_index=True)
-    #
-    # st.session_state["linked_df"] = linked_df
-
-    # exposure_to_filename = {
-    #     "Annual PM10": "TEMP_AVG_20201201.tif"
-    # }
-
-    # What do I want ot happen? I want to go back to being the awesome productive and hardworking developer that I once was. Use those practices. Be less tired and lazy.
-    # Okay, what do I need to do now? I need to create the linking process first, and make sure it works.
-    # Then I need to select the variables.
-    # Then I need to download them for each country, and do the merging.
-
 
 code_expander = st.expander("Want to see the code used in the linking process?")
 with code_expander:
@@ -195,7 +181,7 @@ with code_expander:
             if not isinstance(selected_variable_dict, dict):
                 raise TypeError("Each raster selection must be a dictionary.")
 
-            required_keys = {"variable", "geoserver_name", "time"}
+            required_keys = {"variable", "geoserver_name", "time", "pixel_size"}
             missing_keys = required_keys.difference(selected_variable_dict)
             if missing_keys:
                 raise ValueError(f"Raster selection is missing: {sorted(missing_keys)}")
@@ -212,6 +198,7 @@ with code_expander:
             variable_name = str(selected_variable_dict["variable"]).strip()
             geoserver_name = str(selected_variable_dict["geoserver_name"]).strip()
             timestamp = str(selected_variable_dict["time"]).strip()
+            pixel_size = float(selected_variable_dict["pixel_size"])
             if not variable_name or not geoserver_name or not timestamp:
                 raise ValueError("Raster variable, GeoServer name, and time must be non-empty.")
 
@@ -244,8 +231,8 @@ with code_expander:
                     crs=TARGET_CRS,
                     format="GeoTIFF",
                     time=[timestamp],
-                    resx=DEFAULT_RESOLUTION,
-                    resy=DEFAULT_RESOLUTION,
+                    resx=pixel_size,
+                    resy=pixel_size,
                 )
             except Exception as e:
                 raise RuntimeError(f"Failed to retrieve coverage from GeoServer: {e}")
