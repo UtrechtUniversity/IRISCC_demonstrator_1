@@ -71,13 +71,6 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
     print(
         f"Timing: bounds and request preparation = {perf_counter() - bounds_start:.3f}s"
     )
-
-    print(
-        f"Coverage id: {coverage_id}",
-        f"Here are the bounding box coordinates: {bbox}",
-        f"Here is the timestamp: {timestamp}",
-    )
-
     request_start = perf_counter()
     try:
         coverage = wcs.getCoverage(
@@ -176,7 +169,7 @@ if __name__ == "__main__":
     ]
 
     points_dataframe = gpd.read_file(
-        r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\NL_points_1_km.gpkg"
+        r"C:\Users\5298954\Documents\Projects\IRISCC\Resources\france_study_cohort.gpkg"
     )
 
     linked_df = create_linked_dataframe(selected_variable_dict, points_dataframe)

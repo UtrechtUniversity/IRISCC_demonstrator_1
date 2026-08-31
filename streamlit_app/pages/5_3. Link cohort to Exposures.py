@@ -113,6 +113,9 @@ if run:
                 if state == "started":
                     linking_status.write(f"Linking `{variable_name}`...")
                     linking_status.update(label=f"Linking `{variable_name}`...")
+                elif state == "progress":
+                    linking_status.write(variable_name)
+                    linking_status.update(label=variable_name)
                 elif state == "completed":
                     linking_status.write(f"Finished `{variable_name}`")
                 else:
@@ -135,12 +138,13 @@ linked_df_for_download = get_data()
 if linked_df_for_download is not None:
     linking_failures = st.session_state.get("linking_failures", [])
     if linking_failures:
-        failed_variables = ", ".join(
-            failure["variable"] for failure in linking_failures
+        failed_tiles = ", ".join(
+            f"{failure['variable']} (tile {failure['tile']})"
+            for failure in linking_failures
         )
         st.warning(
-            f"Could not link these exposure layers: {failed_variables}. "
-            "Their columns were added with null values."
+            f"Could not link these tiles: {failed_tiles}. "
+            "Points in those tiles have null values for the affected exposure."
         )
     st.success("""The linking procedure ran successfully!
     Notice the resulting table. Each row represents a subject in the cohort,
