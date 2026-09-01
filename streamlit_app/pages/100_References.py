@@ -16,15 +16,19 @@ st.markdown(
 
 [4] Dyer, Georgia M. C., et al. “The Use of Single and Multiple Pollutant Models in Health Impact Assessment of Air Pollution: What Difference Does It Make and Where?” Environment International, vol. 213, July 2026, p. 110338. DOI.org (Crossref), https://doi.org/10.1016/j.envint.2026.110338.
 
+[5] Heatwaves - a Brief Introduction | Copernicus. https://climate.copernicus.eu/heatwaves-brief-introduction. Accessed 1 Sept. 2026.
 
-[1] de Hoogh, K., Hoek, G., Flückiger, B., Bussalleu, A., Vienneau, D., Jeong, A., Probst-Hensch, N., de Pinho, M. G. M., Mackenbach, J. D., Lakerveld, J., Beulens, J. W., Castagné, R., Delpierre, C., Kelly-Irving, M., Shen, Y., Huss, A., Dadvand, P., Pradas, M. C., Nieuwenhuijsen, M., & Vlaanderen, J. (2025). A Europe-wide characterization of the external exposome: A spatio-temporal analysis. Environment International, 200, 109542.
 
-[2] Baranyi, G., Harron, K., Shen, Y. et al. The relationship between early life course air pollution exposure and general health in adolescence in the United Kingdom. Sci Rep 15, 10983 (2025).
 
-[3] https://www.rivm.nl/en/heat/national-heatwave-plan
 
-[4] Ahmed, I., Van Esch, M., & Van Der Hoeven, F. (2023). Heatwave vulnerability across different spatial scales: Insights from the Dutch built environment. Urban Climate, 51, 101614.
+# [1] de Hoogh, K., Hoek, G., Flückiger, B., Bussalleu, A., Vienneau, D., Jeong, A., Probst-Hensch, N., de Pinho, M. G. M., Mackenbach, J. D., Lakerveld, J., Beulens, J. W., Castagné, R., Delpierre, C., Kelly-Irving, M., Shen, Y., Huss, A., Dadvand, P., Pradas, M. C., Nieuwenhuijsen, M., & Vlaanderen, J. (2025). A Europe-wide characterization of the external exposome: A spatio-temporal analysis. Environment International, 200, 109542.
 
-[5] https://riurbans.eu/wp-content/uploads/2025/07/RI-URBANS_D31_D4_10-1.pdf
+# [2] Baranyi, G., Harron, K., Shen, Y. et al. The relationship between early life course air pollution exposure and general health in adolescence in the United Kingdom. Sci Rep 15, 10983 (2025).
+
+# [3] https://www.rivm.nl/en/heat/national-heatwave-plan
+
+# [4] Ahmed, I., Van Esch, M., & Van Der Hoeven, F. (2023). Heatwave vulnerability across different spatial scales: Insights from the Dutch built environment. Urban Climate, 51, 101614.
+
+# [5] https://riurbans.eu/wp-content/uploads/2025/07/RI-URBANS_D31_D4_10-1.pdf
 """
 )

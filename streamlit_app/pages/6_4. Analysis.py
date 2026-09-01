@@ -25,6 +25,9 @@ st.markdown(
 st.markdown(
     """
     Your linked dataset can be used to explore the relationship between air pollution, heatwaves, and health outcomes. You can perform various analyses, such as descriptive statistics, visualizations, and statistical modeling, to gain insights into the data.
+    This is done offline. You can go back to the last page to download the linked dataset and perform your own analysis using your preferred tools and methods.
+
+    Here are a few examples of analyses you can perform on the linked dataset:
     """,
     unsafe_allow_html=True,
 )
@@ -77,7 +80,11 @@ if not exposure_columns:
     st.warning("No selected exposure columns are available in the linked data.")
     st.stop()
 
-selected_variable = st.selectbox("Exposure variable", exposure_columns)
+selected_variable = st.selectbox("Exposure variable",
+                                 exposure_columns,
+                                 label_visibility="collapsed",
+                                 width=500,
+                                 )
 numeric_values = pd.to_numeric(linked_df[selected_variable], errors="coerce")
 valid_values = numeric_values.dropna()
 
@@ -89,6 +96,8 @@ if linked_df.crs is None:
     st.error("The linked points do not have a coordinate reference system.")
     st.stop()
 
+minimum = float(valid_values.min())
+maximum = float(valid_values.max())
 
 
 def normalized_color(value):
@@ -102,8 +111,6 @@ panel_height = 560
 
 with map_column:
     map_gdf = linked_df.to_crs("EPSG:4326")
-    minimum = float(valid_values.min())
-    maximum = float(valid_values.max())
     colour_map = plt.get_cmap("plasma_r")
 
     bounds = map_gdf.total_bounds
@@ -149,18 +156,196 @@ with map_column:
 with histogram_column:
     bin_count = st.slider("Number of bins", min_value=5, max_value=50, value=20)
     figure, axis = plt.subplots(figsize=(7, panel_height / 100), dpi=100)
-    axis.hist(valid_values, bins=bin_count, color="#e6a016", edgecolor="white", linewidth=0.8)
-    axis.set_xlabel(selected_variable)
-    axis.set_ylabel("Number of points")
-    axis.set_title(f"Distribution of {selected_variable}")
+    figure.patch.set_facecolor("#f8fafc")
+    axis.set_facecolor("#f8fafc")
+    axis.hist(
+        valid_values,
+        bins=bin_count,
+        color="#f5b042",
+        edgecolor="#ffffff",
+        linewidth=1.0,
+        alpha=0.9,
+    )
+    axis.set_xlabel(selected_variable, fontsize=10, fontweight="semibold")
+    axis.set_ylabel("Number of points", fontsize=10, fontweight="semibold")
+    axis.set_title(f"Distribution of {selected_variable}", fontsize=12, fontweight="bold", pad=8)
     axis.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
-    axis.grid(axis="y", alpha=0.2)
+    axis.grid(axis="y", linestyle="--", linewidth=0.6, alpha=0.35)
+    axis.spines["top"].set_visible(False)
+    axis.spines["right"].set_visible(False)
+    axis.spines["left"].set_color("#cbd5e1")
+    axis.spines["bottom"].set_color("#cbd5e1")
+    axis.tick_params(axis="both", labelsize=9, colors="#475569")
     figure.tight_layout()
     st.pyplot(figure, clear_figure=True)
     plt.close(figure)
 
 
-st.subheader("Compare exposure between urban and rural areas")
-st.write("""There are various ways to define urban, suburban, and rural areas on a European or country-specific basis.
-        In this demonstrator, we will use the Eurostat Degree of Urbanisation (DEGURBA) classification, which is based on population density and settlement patterns. The DEGURBA classification divides areas into three categories: urban, suburban, and rural. You can use this classification to compare the exposure values between these different types of areas.
-""")
+# st.subheader("Compare exposure between urban and rural areas")
+# st.write("""There are various ways to define urban, suburban, and rural areas on a European or country-specific basis.
+#         In this demonstrator, we will use the Eurostat Degree of Urbanisation (DEGURBA) classification, which is based on population density and settlement patterns. The DEGURBA classification divides areas into three categories: urban, suburban, and rural. You can use this classification to compare the exposure values between these different types of areas.
+# """)
+
+st.markdown(
+    "<div class='iriscc-section-title'><strong>Exposure to heatwaves</strong></div>",
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <div class="iriscc-body">
+        There is no single universal definition of a heatwave: different countries and studies use different thresholds and rules
+        [<a href="https://climate.copernicus.eu/heatwaves-brief-introduction">5</a>].
+        <br><br>
+        Heatwaves are often defined by one or more of the following:
+        <ul>
+            <li>a fixed temperature threshold</li>
+            <li>a threshold relative to local historical data</li>
+            <li>the temperature measured at a single location</li>
+            <li>how widespread the heat is across a region</li>
+            <li>the duration and intensity of the event</li>
+            <li>daily minimum, average, or maximum temperature</li>
+        </ul>
+        <br>
+        This section demonstrates how to identify individuals exposed to heatwaves using a simple rule-based approach.
+        The table below contains sample daily temperature values for a dummy cohort during June, July, and August 2024.
+        You can choose the definition you want to apply and see how many subjects match it.
+        <br><br>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+summer_dates = pd.date_range("2024-06-01", "2024-08-31", freq="D")
+
+sample_heatwave_df = pd.DataFrame({
+    "subject_id": [f"{i:03d}" for i in range(1, 101)]
+})
+
+rng = pd.Series(range(100)).sample(frac=1, random_state=42).reset_index(drop=True)
+
+for day in summer_dates:
+    day_label = day.strftime("%Y-%m-%d")
+    min_col = f"min_{day_label}"
+    avg_col = f"avg_{day_label}"
+    max_col = f"max_{day_label}"
+
+    seasonal_baseline = 22 + 8 * (1 - abs(day.dayofyear - 200) / 120)
+
+    sample_heatwave_df[min_col] = 0.0
+    sample_heatwave_df[avg_col] = 0.0
+    sample_heatwave_df[max_col] = 0.0
+
+    for idx in range(len(sample_heatwave_df)):
+        heat_bias = 0.0
+        if idx % 11 == 0 and day.month in [7, 8]:
+            heat_bias += 8
+        if idx % 19 == 0 and day.month == 8:
+            heat_bias += 7
+        if idx % 29 == 0:
+            heat_bias += 6
+        if day.month == 6 and idx % 13 == 0:
+            heat_bias -= 2
+
+        daily_variation = (rng.iloc[idx] % 7) * 0.9
+        max_temp = seasonal_baseline + daily_variation + heat_bias
+        avg_temp = max_temp - 4 + ((rng.iloc[idx] % 3) * 0.8)
+        min_temp = max(12, avg_temp - 6 + ((rng.iloc[idx] % 4) * 0.6))
+
+        sample_heatwave_df.at[idx, min_col] = round(min_temp, 1)
+        sample_heatwave_df.at[idx, avg_col] = round(avg_temp, 1)
+        sample_heatwave_df.at[idx, max_col] = round(max_temp, 1)
+
+max_columns = [col for col in sample_heatwave_df.columns if col.startswith("max_")]
+avg_columns = [col for col in sample_heatwave_df.columns if col.startswith("avg_")]
+min_columns = [col for col in sample_heatwave_df.columns if col.startswith("min_")]
+
+
+st.markdown(
+    "<div class='iriscc-instruction'><strong>1. Linked daily cohort temperature data</strong></div>",
+    unsafe_allow_html=True,
+)
+st.caption("This is the output table of the linking step. The table shows one row per subject and one column per daily temperature value for the summer period.")
+st.dataframe(
+    sample_heatwave_df,
+    use_container_width=True,
+    height=420,
+    hide_index=True,
+)
+
+heatwave_definitions = {
+    "3 or more consecutive days where the maximum temperature exceeds a threshold": "max_gt_threshold",
+    "5 or more consecutive days where the daily maximum exceeds the daily average by more than 5°C": "max_over_avg_gt_5",
+    "Tropical night: 3 or more consecutive days where the minimum temperature exceeds a threshold": "min_gt_threshold",
+}
+
+st.markdown(
+    "<div class='iriscc-instruction'><strong>2. Choose a heatwave definition</strong></div>",
+    unsafe_allow_html=True,
+)
+selected_heatwave_definition = st.selectbox(
+    "Definition to apply",
+    list(heatwave_definitions.keys()),
+    label_visibility="collapsed",
+    width=1000,
+)
+
+heatwave_definition_key = heatwave_definitions[selected_heatwave_definition]
+
+if heatwave_definition_key in {"max_gt_threshold", "min_gt_threshold"}:
+    heat_threshold = st.slider(
+        "Threshold temperature (°C)",
+        min_value=20.0,
+        max_value=35.0,
+        value=28.0,
+        step=1.0,
+        width=300,
+    )
+else:
+    heat_threshold = None
+
+
+def has_consecutive_run(series, minimum_days):
+    run_length = 0
+    for value in series:
+        if value:
+            run_length += 1
+            if run_length >= minimum_days:
+                return True
+        else:
+            run_length = 0
+    return False
+
+
+def meets_heatwave_definition(row):
+    max_values = row[max_columns]
+    avg_values = row[avg_columns]
+    min_values = row[min_columns]
+
+    if heatwave_definition_key == "max_gt_threshold":
+        return has_consecutive_run((max_values > heat_threshold).to_numpy(), 3)
+    if heatwave_definition_key == "max_over_avg_gt_5":
+        return has_consecutive_run(((max_values - avg_values) > 5).to_numpy(), 5)
+    if heatwave_definition_key == "min_gt_threshold":
+        return has_consecutive_run((min_values > heat_threshold).to_numpy(), 3)
+    return False
+
+sample_heatwave_df["meets_definition"] = sample_heatwave_df.apply(meets_heatwave_definition, axis=1)
+
+sample_heatwave_df["max_days_over_threshold"] = (sample_heatwave_df[max_columns] > heat_threshold).sum(axis=1) if heatwave_definition_key == "max_gt_threshold" else 0
+sample_heatwave_df["max_over_avg_days"] = ((sample_heatwave_df[max_columns] - sample_heatwave_df[avg_columns]) > 5).sum(axis=1) if heatwave_definition_key == "max_over_avg_gt_5" else 0
+sample_heatwave_df["min_days_over_threshold"] = (sample_heatwave_df[min_columns] > heat_threshold).sum(axis=1) if heatwave_definition_key == "min_gt_threshold" else 0
+
+matching_ids = sample_heatwave_df.loc[sample_heatwave_df["meets_definition"], "subject_id"].tolist()
+
+st.markdown(
+    "<div class='iriscc-instruction'><strong>3. Results</strong></div>",
+    unsafe_allow_html=True,
+)
+st.write(
+    f"{len(matching_ids)} out of {len(sample_heatwave_df)} subjects meet the selected definition and threshold in 2024."
+)
+
+if matching_ids:
+    st.write(f"Subject IDs: {', '.join(map(str, matching_ids))}")
+
