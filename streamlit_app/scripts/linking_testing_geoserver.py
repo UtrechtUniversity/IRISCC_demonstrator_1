@@ -1,25 +1,115 @@
-import math
+import asyncio
 from time import perf_counter
 
+import aiohttp
 import geopandas as gpd
-import rasterio
-from owslib.wcs import WebCoverageService
 
-WCS_URL = "https://exposome.uu.nl/geoserver/wcs"
+WMS_URL = "https://exposome.uu.nl/geoserver/wms"
+WMS_WORKSPACE = "EXPANSE_map"
 TARGET_CRS = "EPSG:3857"
-DEFAULT_BUFFER = 100
+WMS_TIMEOUT = 60
+MAX_REQUESTS = 2000
+MAX_CONCURRENT_REQUESTS = 10
+
+def _format_wms_time(timestamp):
+    """Format date-only selections as the UTC instants used by daily layers."""
+    if len(timestamp) == 10 and timestamp[4] == "-" and timestamp[7] == "-":
+        return f"{timestamp}T00:00:00.000Z"
+    return timestamp
+
+async def _fetch_gray_index(
+    session,
+    semaphore,
+    position,
+    original_index,
+    params,
+    output_column,
+    total_points,
+):
+    async with semaphore:
+        print(
+            f"[link_to_raster2] Point {position + 1}/{total_points}: "
+            f"original index={original_index}"
+        )
+        print(f"[link_to_raster2] Request parameters: {params}")
+        request_start = perf_counter()
+        try:
+            async with session.get(WMS_URL, params=params) as response:
+                print(
+                    f"[link_to_raster2] Response for point {position + 1}: "
+                    f"status={response.status}, "
+                    f"content-type={response.headers.get('Content-Type')}, "
+                    f"elapsed={perf_counter() - request_start:.3f}s"
+                )
+                response.raise_for_status()
+                data = await response.json(content_type=None)
+                features = data.get("features", [])
+                print(f"[link_to_raster2] Features returned: {len(features)}")
+                if features:
+                    properties = features[0].get("properties", {})
+                    print(f"[link_to_raster2] Properties: {properties}")
+                    value = properties.get("GRAY_INDEX")
+                    print(
+                        f"[link_to_raster2] Gray Index for point {position + 1}: {value}"
+                    )
+                    return position, value, None
+                print(f"[link_to_raster2] No feature returned for point {position + 1}.")
+                return position, None, None
+        except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, TypeError, AttributeError) as error:
+            print(
+                f"[link_to_raster2] Request failed for point {position + 1}: "
+                f"{type(error).__name__}: {error}"
+            )
+            return position, None, {
+                "variable": output_column,
+                "point": position,
+                "error": str(error),
+            }
 
 
-def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
-    """Sample one WCS coverage at the locations in ``points_dataframe``."""
-    print("Here is the input selected_variable_dict:", selected_variable_dict)
+async def _fetch_raster_values(requests_to_make, output_column, progress_callback):
+    values = [None] * len(requests_to_make)
+    failures = []
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+    timeout = aiohttp.ClientTimeout(total=WMS_TIMEOUT)
+    connector = aiohttp.TCPConnector(limit=MAX_CONCURRENT_REQUESTS)
 
+    async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+        tasks = [
+            asyncio.create_task(
+                _fetch_gray_index(
+                    session,
+                    semaphore,
+                    position,
+                    original_index,
+                    params,
+                    output_column,
+                    len(requests_to_make),
+                )
+            )
+            for position, (original_index, params) in enumerate(requests_to_make)
+        ]
+        for task in asyncio.as_completed(tasks):
+            position, value, failure = await task
+            values[position] = value
+            if failure:
+                failures.append(failure)
+            if progress_callback:
+                progress_callback(
+                    "progress",
+                    f"Processed point {position + 1} of {len(requests_to_make)} for {output_column}",
+                )
+    return values, failures
+
+
+def link_to_raster2(selected_variable_dict, points_dataframe, progress_callback=None, return_failures=False):
     total_start = perf_counter()
-
     validation_start = perf_counter()
+    print("[link_to_raster2] Starting raster link.")
+    print(f"[link_to_raster2] Selection: {selected_variable_dict}")
+    print(f"[link_to_raster2] Input points: {len(points_dataframe)}")
     if not isinstance(selected_variable_dict, dict):
         raise TypeError("Each raster selection must be a dictionary.")
-
     required_keys = {"variable", "geoserver_name", "time", "pixel_size"}
     missing_keys = required_keys.difference(selected_variable_dict)
     if missing_keys:
@@ -37,7 +127,6 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         raise ValueError(
             "points_dataframe must contain only non-null Point geometries."
         )
-    print(f"Timing: validation = {perf_counter() - validation_start:.3f}s")
 
     variable_name = str(selected_variable_dict["variable"]).strip()
     geoserver_name = str(selected_variable_dict["geoserver_name"]).strip()
@@ -48,284 +137,185 @@ def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
         raise ValueError("Raster pixel_size must be a positive number.")
     if not variable_name or not geoserver_name or not timestamp:
         raise ValueError("Raster variable, GeoServer name, and time must be non-empty.")
-    if not math.isfinite(pixel_size) or pixel_size <= 0:
+    if pixel_size <= 0:
         raise ValueError("Raster pixel_size must be a positive number.")
 
-    reprojection_start = perf_counter()
-    original_crs = points_dataframe.crs
-    points_in_raster_crs = points_dataframe.to_crs(TARGET_CRS)
-    print(f"Timing: CRS conversion = {perf_counter() - reprojection_start:.3f}s")
+    output_column = f"{variable_name}_{timestamp}"
+    wms_timestamp = _format_wms_time(timestamp)
 
-    coverage_id = f"EXPANSE_map:{geoserver_name}"
-
-    bounds_start = perf_counter()
-    minx, miny, maxx, maxy = points_in_raster_crs.total_bounds
-    if not all(math.isfinite(value) for value in (minx, miny, maxx, maxy)):
-        raise ValueError("Point coordinates must be finite.")
-    bbox = (
-        float(minx - DEFAULT_BUFFER),
-        float(miny - DEFAULT_BUFFER),
-        float(maxx + DEFAULT_BUFFER),
-        float(maxy + DEFAULT_BUFFER),
-    )
     print(
-        f"Timing: bounds and request preparation = {perf_counter() - bounds_start:.3f}s"
+        f"[link_to_raster2] Raster: variable={variable_name}, "
+        f"GeoServer name={geoserver_name}, time={timestamp}, pixel size={pixel_size}"
     )
-    request_start = perf_counter()
-    try:
-        coverage = wcs.getCoverage(
-            identifier=coverage_id,
-            bbox=bbox,
-            crs=TARGET_CRS,
-            format="GeoTIFF",
-            time=[timestamp],
-            resx=pixel_size,
-            resy=pixel_size,
+
+    print(f"[link_to_raster2] WMS TIME parameter: {wms_timestamp}")
+    print(f"[link_to_raster2] Input CRS: {points_dataframe.crs}")
+    print(f"[link_to_raster2] Reprojecting points to {TARGET_CRS}.")
+    points_in_wms_crs = points_dataframe.to_crs(TARGET_CRS)
+    layer_name = f"{WMS_WORKSPACE}:{geoserver_name}"
+    values = [None] * len(points_dataframe)
+    failures = []
+    print(f"[link_to_raster2] WMS layer: {layer_name}")
+    print(f"[link_to_raster2] Output column: {output_column}")
+    print(f"[link_to_raster2] Validated in {perf_counter() - validation_start:.3f}s")
+    print(f"Timing: validation = {perf_counter() - validation_start:.3f}s")
+
+    requests_to_make = []
+    for point_index, point in enumerate(points_in_wms_crs.geometry):
+        x = float(point.x)
+        y = float(point.y)
+        half_pixel = pixel_size / 2
+        params = {
+            "SERVICE": "WMS",
+            "VERSION": "1.1.1",
+            "REQUEST": "GetFeatureInfo",
+            "LAYERS": layer_name,
+            "QUERY_LAYERS": layer_name,
+            "STYLES": "",
+            "SRS": TARGET_CRS,
+            "BBOX": f"{x - half_pixel},{y - half_pixel},{x + half_pixel},{y + half_pixel}",
+            "WIDTH": 1,
+            "HEIGHT": 1,
+            "X": 0,
+            "Y": 0,
+            "INFO_FORMAT": "application/json",
+            "FEATURE_COUNT": 1,
+            "TIME": wms_timestamp,
+        }
+        requests_to_make.append((points_dataframe.index[point_index], params))
+
+    if len(requests_to_make) > MAX_REQUESTS:
+        print(
+            f"[link_to_raster2] Limiting requests from {len(requests_to_make)} "
+            f"to {MAX_REQUESTS}."
         )
-    except Exception as e:
-        raise RuntimeError(f"Failed to retrieve coverage from GeoServer: {e}")
+        requests_to_make = requests_to_make[:MAX_REQUESTS]
     print(
-        f"Timing: getCoverage request setup/response = {perf_counter() - request_start:.3f}s"
+        f"[link_to_raster2] Sending {len(requests_to_make)} request(s) asynchronously "
+        f"with a maximum of {MAX_CONCURRENT_REQUESTS} concurrent request(s)."
     )
+    requested_values, request_failures = asyncio.run(
+        _fetch_raster_values(requests_to_make, output_column, progress_callback)
+    )
+    values[: len(requested_values)] = requested_values
+    failures.extend(request_failures)
 
-    read_start = perf_counter()
-    data = coverage.read()
     print(
-        f"Timing: coverage.read() = {perf_counter() - read_start:.3f}s ({len(data) / 1024 / 1024:.2f} MiB)"
+        f"[link_to_raster2] Finished requests: values={sum(value is not None for value in values)}, "
+        f"missing={sum(value is None for value in values)}, failures={len(failures)}"
     )
-    # print(data[:300])
-
-    raster_start = perf_counter()
-    with rasterio.MemoryFile(data) as memfile:
-        with memfile.open() as dataset:
-            if dataset.count != 1:
-                raise ValueError(
-                    f"Expected 1 band, got {dataset.count} — check timestamp input."
-                )
-
-            coord_list = list(
-                zip(points_in_raster_crs.geometry.x, points_in_raster_crs.geometry.y)
-            )
-            sampled_values = []
-            for sample in dataset.sample(coord_list, masked=True):
-                value = sample[0]
-                sampled_values.append(
-                    None
-                    if value is None or getattr(value, "mask", False)
-                    else round(float(value), 2)
-                )
-    print(
-        f"Timing: GeoTIFF open and point sampling = {perf_counter() - raster_start:.3f}s ({len(sampled_values)} points)"
-    )
-
     linked_points = points_dataframe.copy()
-    linked_points[variable_name] = sampled_values
-    assert linked_points.crs == original_crs
-    print(f"Timing: total link_to_raster = {perf_counter() - total_start:.3f}s")
+    linked_points[output_column] = values
+    print(f"[link_to_raster2] Final GeoDataFrame shape: {linked_points.shape}")
+    print(f"Timing: total link_to_raster2 = {perf_counter() - total_start:.3f}s")
+    if return_failures:
+        return linked_points, failures
     return linked_points
 
 
-def create_linked_dataframe(selected_variable_dict, points_dataframe):
-    """Add one sampled exposure column for every selected raster/time."""
+def create_linked_dataframe(
+    selected_variable_dict,
+    points_dataframe,
+    return_failures=False,
+    progress_callback=None,
+):
+    """Add one sampled exposure column for every selected raster/time.
+
+    Failed layers are added as null columns and recorded in the optional
+    failure report instead of stopping the remaining layers.
+    """
     if not isinstance(selected_variable_dict, list) or not selected_variable_dict:
         raise ValueError("selected_variable_dict must be a non-empty list.")
 
     if not all(isinstance(selection, dict) for selection in selected_variable_dict):
         raise TypeError("Each raster selection must be a dictionary.")
 
-    variable_names = [
-        str(selection.get("variable", "")).strip()
+    output_columns = [
+        f"{str(selection.get('variable', '')).strip()}_{str(selection.get('time', '')).strip()}"
         for selection in selected_variable_dict
     ]
-    if not all(variable_names):
-        raise ValueError("Each raster selection must have a non-empty variable name.")
-    if len(variable_names) != len(set(variable_names)):
-        raise ValueError("Each raster selection must have a unique variable name.")
+    if any(
+        column == "_" or column.startswith("_") or column.endswith("_")
+        for column in output_columns
+    ):
+        raise ValueError(
+            "Each raster selection must have a non-empty variable name and timestamp."
+        )
+    if len(output_columns) != len(set(output_columns)):
+        raise ValueError("Each variable and timestamp combination must be unique.")
 
     total_start = perf_counter()
+    print(
+        f"[create_linked_dataframe] Starting link for {len(selected_variable_dict)} "
+        f"raster selection(s) and {len(points_dataframe)} point(s)."
+    )
+    print(f"[create_linked_dataframe] Output columns: {output_columns}")
     linked_gdf = points_dataframe.copy()
-    wcs = WebCoverageService(WCS_URL, version="1.0.0")
-    print(f"Timing: WCS client creation = {perf_counter() - total_start:.3f}s")
+    failures = []
     for variable_dict in selected_variable_dict:
-        print(f"Extracting values from raster: {variable_dict['geoserver_name']}")
-        extracted_values = link_to_raster(variable_dict, linked_gdf, wcs=wcs)
         variable_name = str(variable_dict["variable"]).strip()
-        linked_gdf[variable_name] = extracted_values[variable_name]
+        timestamp = str(variable_dict["time"]).strip()
+        output_column = f"{variable_name}_{timestamp}"
+        try:
+            print(
+                f"[create_linked_dataframe] Starting {output_column} "
+                f"({selected_variable_dict.index(variable_dict) + 1}/{len(selected_variable_dict)})."
+            )
+            if progress_callback:
+                progress_callback("started", output_column)
+            print(f"Extracting values from raster: {variable_dict['geoserver_name']}")
+            extracted_values, tile_failures = link_to_raster2(
+                variable_dict,
+                linked_gdf,
+                progress_callback=progress_callback,
+                return_failures=True,
+            )
+            linked_gdf[output_column] = extracted_values[output_column]
+            failures.extend(tile_failures)
+            print(
+                f"[create_linked_dataframe] Completed {output_column}; "
+                f"failures so far={len(failures)}."
+            )
+            if progress_callback:
+                progress_callback("completed", output_column)
+        except Exception as error:
+            print(f"Failed to link {output_column}: {error}")
+            linked_gdf[output_column] = [None] * len(linked_gdf)
+            failures.append({"variable": output_column, "error": str(error)})
+            print(
+                f"[create_linked_dataframe] Added null column for {output_column}; "
+                f"failures so far={len(failures)}."
+            )
+            if progress_callback:
+                progress_callback("failed", output_column)
 
     print(
         f"Timing: total create_linked_dataframe = {perf_counter() - total_start:.3f}s"
     )
+    print(
+        f"[create_linked_dataframe] Finished. Shape={linked_gdf.shape}, "
+        f"total failures={len(failures)}."
+    )
+    if return_failures:
+        return linked_gdf, failures
     return linked_gdf
 
-
 if __name__ == "__main__":
+    # Example usage
     selected_variable_dict = [
         {
-            "variable": "TMP_AVG_YEARLY",
-            "geoserver_name": "TMP_AVG_YEARLY",
-            "time": "2023",
-            "pixel_size": 1000,
+            "variable": "TMP_MIN_DAILY",
+            "geoserver_name": "TMP_MIN_DAILY",
+            "time": "2024-06-03",
+            "pixel_size": 25,
         }
     ]
-
-    points_dataframe = gpd.read_file(
-        r"C:\Users\5298954\Documents\Projects\IRISCC\Resources\france_study_cohort.gpkg"
+    points_data = gpd.read_file(r"C:\Users\5298954\Documents\Projects\IRISCC\Resources\france_study_cohort_mini.gpkg")  # Replace with your actual file path
+    # print(points_data.head())
+    linked_df, failures = create_linked_dataframe(
+        selected_variable_dict, points_data, return_failures=True
     )
 
-    linked_df = create_linked_dataframe(selected_variable_dict, points_dataframe)
-    print(linked_df.head())
-
-    # # Extra printing for testing if needed
-    # cov_info = wcs[coverage_id]
-    # print(cov_info.timepositions)
-    # print("Title:", cov_info.title)
-    # print("Bounding box (WGS84):", bbox)
-    # print("Supported CRSs:", cov_info.supportedCRS)
-    # print("Supported formats:", cov_info.supportedFormats)
-    # print(cov_info.timelimits)
-    # raw = coverage.read()
-
-    # Save tiff for testing
-    # data = coverage.read()
-    # print(data[:200])
-    # raster_path = Path("streamlit_app", "Resources", "exposure_datasets", f"test_geoserver_5.tif").resolve()
-    # with open(raster_path, 'wb') as f:
-    #     f.write(coverage.read())
-    # print(f"Raster {coverage_id} downloaded successfully.")
-
-
-# def get_points_bounds(points):
-#     points_3857 = points.to_crs("EPSG:3857")
-
-#     x, y = points_3857.geometry.iloc[0].x, points_3857.geometry.iloc[0].y
-#     print(x, y)
-#     return x, y
-
-
-#     # min_x, min_y, max_x, max_y = points_3857.total_bounds
-
-#     # print(points_3857.crs)
-#     # print(min_x, min_y, max_x, max_y)
-
-#     # return min_x, min_y, max_x, max_y
-
-
-# def query_geoserver_for_raster(raster_name):
-#     points = gpd.read_file(r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\NL_points_1_km.gpkg")
-
-#     x, y = get_points_bounds(points)
-
-#     wms = WebMapService("https://exposome.uu.nl/geoserver/wms", version="1.3.0")
-
-#     bbox = (4.5, 52.0, 5.5, 52.5)
-#     print(list(wms.contents))
-#     response = wms.getmap(
-#         layers=["EXPANSE_map:TEMP_MAX_MONTHLY"],
-#         srs="EPSG:4326",
-#         bbox=bbox,
-#         size=(1024, 1024),       # pixel dimensions of output image
-#         format="image/geotiff",  # GeoServer WMS often supports this directly
-#         transparent=True
-#     )
-
-#     print(response.status_code)
-#     print(response.headers.get("Content-Type"))
-#     print(len(response.content))
-
-
-# # # def query_geoserver_for_raster(raster_name):
-# #     points = gpd.read_file(r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\NL_points_1_km.gpkg")
-
-# #     x, y = get_points_bounds(points)
-
-
-# #     wcs = WebCoverageService("https://exposome.uu.nl/geoserver/wcs", version="1.0.0")
-
-# #     overage_id = "workspace:layername"  # pick one from the list above
-
-# #     cov_info = wcs["EXPANSE_map:P10B100_MAV"]
-
-# #     print("Title:", cov_info.title)
-# #     print("Bounding box (WGS84):", cov_info.boundingBoxWGS84)
-# #     print("Supported CRSs:", cov_info.supportedCRS)
-# #     print("Supported formats:", cov_info.supportedFormats)
-
-# #     bbox = (4.5, 52.0, 5.5, 52.5)  # (minx, miny, maxx, maxy) — use values within boundingBoxWGS84
-
-# #     coverage = wcs.getCoverage(
-# #         identifier="EXPANSE_map:P10B100_MAV",
-# #         bbox=bbox,
-# #         crs="EPSG:4326",         # match one of cov_info.supportedCRS
-# #         format="GeoTIFF",        # match one of cov_info.supportedFormats
-# #         resx=100,               # resolution in x — adjust to your needs
-# #         resy=100                # resolution in y
-# #     )
-
-# #     with open("coverage_output.tif", "wb") as f:
-# #         f.write(coverage.read())
-
-# #     print("Saved coverage_output.tif")
-
-#     # geoserver_url = "https://exposome.uu.nl/geoserver/wcs"
-#     # params = {
-#     #     "service": "WCS",
-#     #     "version": "2.0.1",
-#     #     "request": "GetCoverage",
-#     #     "coverageId": "EXPANSE_map__MVI_MD5",
-#     #     "format": "image/tiff",
-#     #     "subset": [
-#     #         f"X({x - 500},{x + 500})",
-#     #         f"Y({y - 500},{y + 500})",
-#     #     ],
-#     # }
-
-#     # response = requests.get(geoserver_url, params=params)
-
-#     # print(response.status_code)
-#     # print(response.headers.get("Content-Type"))
-#     # print(len(response.content))
-#     # response = requests.get(geoserver_url, params=params)
-
-#     # print(response.status_code)
-#     # print(response.headers.get("Content-Type"))
-#     # print(response.text)
-#     # # with rasterio.MemoryFile(response.content) as memfile:
-#     # #     with memfile.open() as src:
-#     # #         values = list(src.sample(points))
-
-#     # # with MemoryFile() as memfile:
-#     # #     with memfile.open(driver='GTiff', count=3, ...) as dataset:
-#     # #         dataset.write(data_array)
-
-#     # if response.status_code == 200:
-#     #     raster_path = Path("streamlit_app", "Resources", "exposure_datasets", raster_name).resolve()
-#     #     with open(raster_path, 'wb') as f:
-#     #         f.write(response.content)
-#     #     print(f"Raster {raster_name} downloaded successfully.")
-#     # else:
-#     #     print(f"Failed to download raster {raster_name}. Status code: {response.status_code}")
-
-# def sample_points(gdf, raster_name):
-#     print(f"Sampling points from raster: {raster_name}")
-#     raster_path = Path("streamlit_app", "Resources", "exposure_datasets", raster_name).resolve()
-#     print(f"Raster path: {raster_path}")
-
-#     # src = rasterio.open(raster_path)
-
-#     # coord_list = [(x, y) for x, y in zip(gdf["geometry"].x, gdf["geometry"].y)]
-#     # gdf[variable_name] = [x[0].round(2) for x in src.sample(coord_list)]
-
-#     # return gdf[["SubjectID", variable_name]]
-
-
-# def extract_values(gdf, raster_folder, selected_rasters_list, raster_crs):
-#     rasters_in_folder = os.listdir(raster_folder)
-#     rasters_to_link = [f for f in rasters_in_folder if f.endswith(".tif") and f in selected_rasters_list]
-
-#     # Create geodataframe of extracted points
-#     for raster in rasters_to_link:
-#         print(f"Extracting values from raster: {raster}")
-#         extracted_values = sample_points(gdf, raster)
-#     #     gdf = gdf.merge(extracted_values, on="SubjectID")
-
-#     # return gdf
+    # Print the linked DataFrame and any failures for testing purposes
+    print(linked_df)
+    print("Failures:", failures)

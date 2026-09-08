@@ -197,7 +197,7 @@ st.markdown(
         There is no single universal definition of a heatwave: different countries and studies use different thresholds and rules
         [<a href="https://climate.copernicus.eu/heatwaves-brief-introduction">5</a>].
         <br><br>
-        Heatwaves are often defined by one or more of the following:
+        Heatwave indices are often defined by one or more of the following:
         <ul>
             <li>a fixed temperature threshold</li>
             <li>a threshold relative to local historical data</li>

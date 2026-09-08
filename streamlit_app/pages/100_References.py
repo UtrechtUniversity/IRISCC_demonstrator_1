@@ -17,6 +17,8 @@ st.markdown(
 [4] Dyer, Georgia M. C., et al. “The Use of Single and Multiple Pollutant Models in Health Impact Assessment of Air Pollution: What Difference Does It Make and Where?” Environment International, vol. 213, July 2026, p. 110338. DOI.org (Crossref), https://doi.org/10.1016/j.envint.2026.110338.
 
 [5] Heatwaves - a Brief Introduction | Copernicus. https://climate.copernicus.eu/heatwaves-brief-introduction. Accessed 1 Sept. 2026.
+"""
+)
 
 
 
@@ -30,5 +32,3 @@ st.markdown(
 # [4] Ahmed, I., Van Esch, M., & Van Der Hoeven, F. (2023). Heatwave vulnerability across different spatial scales: Insights from the Dutch built environment. Urban Climate, 51, 101614.
 
 # [5] https://riurbans.eu/wp-content/uploads/2025/07/RI-URBANS_D31_D4_10-1.pdf
-"""
-)

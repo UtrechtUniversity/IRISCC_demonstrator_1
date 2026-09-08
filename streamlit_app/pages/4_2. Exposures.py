@@ -102,6 +102,7 @@ def default_selection_record(name):
         "single_day": "",
         "start_date": "",
         "end_date": "",
+        "daily_year": "",
         "single_year": "",
         "start_year": "",
         "end_year": "",
@@ -293,6 +294,7 @@ variable_metadata = {
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
+        "time_period": "2019-2023",
         "unit": "μg/m³",
         "description": "Inhalable particles with diameters 10 micrometers and smaller",
         "thumbnail": "Resources/thumbnails/pm10.png",
@@ -304,6 +306,7 @@ variable_metadata = {
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
+        "time_period": "2019-2023",
         "unit": "μg/m³",
         "description": "Inhalable particles with diameters 2.5 micrometers and smaller",
         "thumbnail": "Resources/thumbnails/pm25.png",
@@ -315,6 +318,7 @@ variable_metadata = {
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
+        "time_period": "2019-2023",
         "unit": "μg/m³",
         "description": "Ground-level ozone, the result of reactions of man-made volatile organic compounds and nitrogen oxides",
         "thumbnail": "Resources/thumbnails/o3.png",
@@ -326,6 +330,7 @@ variable_metadata = {
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
+        "time_period": "2019-2023",
         "unit": "μg/m³",
         "description": "Nitrogen dioxide that gets in the air from the burning of fuel, primarily from vehicles and power plants",
         "thumbnail": "Resources/thumbnails/no2.png",
@@ -337,6 +342,7 @@ variable_metadata = {
         "temporal_mode": "yearly",
         "start_time": "2020",
         "end_time": "2024",
+        "time_period": "2020-2024",
         "unit": "°C",
         "description": "Modeled yearly average tempeature",
         "thumbnail": "Resources/thumbnails/yearly_avg_temp.png",
@@ -348,6 +354,7 @@ variable_metadata = {
         "temporal_mode": "daily",
         "start_time": "2020-01-01",
         "end_time": "2024-12-31",
+        "time_period": "June, July, August 2020-2024",
         "unit": "°C",
         "description": "Modeled daily average temperature",
         "thumbnail": "Resources/thumbnails/daily_average_temperature.png",
@@ -359,6 +366,7 @@ variable_metadata = {
         "temporal_mode": "daily",
         "start_time": "2020-01-01",
         "end_time": "2024-12-31",
+        "time_period": "June, July, August 2020-2024",
         "unit": "°C",
         "description": "Modeled daily maximum temperature",
         "thumbnail": "Resources/thumbnails/daily_maximum_temperature.png",
@@ -370,6 +378,7 @@ variable_metadata = {
         "temporal_mode": "daily",
         "start_time": "2020-01-01",
         "end_time": "2024-12-31",
+        "time_period": "June, July, August 2020-2024",
         "unit": "°C",
         "description": "Modeled daily minimum temperature",
         "thumbnail": "Resources/thumbnails/daily_minimum_temperature.png",
@@ -392,7 +401,7 @@ def render_variable_card(name, state_key, selected):
         ("Spatial resolution", metadata.get("spatial_resolution", "TBD")),
         (
             "Available window",
-            f"{metadata.get('start_time', 'TBD')} to {metadata.get('end_time', 'TBD')}",
+            f"{metadata.get('time_period', 'TBD')}",
         ),
         ("Unit", metadata.get("unit", "TBD")),
     ]:
@@ -540,48 +549,82 @@ def render_variable_card(name, state_key, selected):
                     st.warning(
                         "Set valid start_time and end_time dates (YYYY-MM-DD) in this variable's metadata."
                     )
-                elif record["timeframe_type"] == "single_day":
-                    selected_day = (
-                        parse_metadata_date(record.get("single_day")) or start_time
-                    )
-                    selected_day = min(max(selected_day, start_time), end_time)
-                    selected_day = st.date_input(
-                        "Day",
-                        value=selected_day,
-                        min_value=start_time,
-                        max_value=end_time,
-                        key=f"{state_key}_{slugify(name)}_single_day",
-                        format="YYYY-MM-DD",
-                    )
-                    record["single_day"] = selected_day.isoformat()
-                    record["start_date"] = ""
-                    record["end_date"] = ""
                 else:
-                    selected_start = (
-                        parse_metadata_date(record.get("start_date")) or start_time
+                    available_years = list(range(start_time.year, end_time.year + 1))
+                    selected_year = record.get("daily_year")
+                    selected_year = (
+                        int(selected_year)
+                        if str(selected_year).isdigit()
+                        else start_time.year
                     )
-                    selected_end = (
-                        parse_metadata_date(record.get("end_date")) or end_time
+                    if selected_year not in available_years:
+                        selected_year = start_time.year
+                    selected_year = st.selectbox(
+                        "Year",
+                        available_years,
+                        index=available_years.index(selected_year),
+                        key=f"{state_key}_{slugify(name)}_daily_year",
                     )
-                    selected_start = min(max(selected_start, start_time), end_time)
-                    selected_end = min(max(selected_end, start_time), end_time)
-                    if selected_end < selected_start:
-                        selected_end = selected_start
-                    selected_range = st.date_input(
-                        "Day range",
-                        value=(selected_start, selected_end),
-                        min_value=start_time,
-                        max_value=end_time,
-                        key=f"{state_key}_{slugify(name)}_day_range",
-                        format="YYYY-MM-DD",
-                    )
-                    if (
-                        isinstance(selected_range, (tuple, list))
-                        and len(selected_range) == 2
-                    ):
-                        record["start_date"] = selected_range[0].isoformat()
-                        record["end_date"] = selected_range[1].isoformat()
-                    record["single_day"] = ""
+
+                    record["daily_year"] = str(selected_year)
+                    available_start = max(date(selected_year, 6, 1), start_time)
+                    available_end = min(date(selected_year, 8, 31), end_time)
+
+                    if available_start > available_end:
+                        st.warning(
+                            "No daily data is available between June and August for this year."
+                        )
+                    elif record["timeframe_type"] == "single_day":
+                        selected_day = (
+                            parse_metadata_date(record.get("single_day"))
+                            or available_start
+                        )
+                        selected_day = min(
+                            max(selected_day, available_start), available_end
+                        )
+                        selected_day = st.date_input(
+                            "Day",
+                            value=selected_day,
+                            min_value=available_start,
+                            max_value=available_end,
+                            key=f"{state_key}_{slugify(name)}_single_day_{selected_year}",
+                            format="YYYY-MM-DD",
+                        )
+                        record["single_day"] = selected_day.isoformat()
+                        record["start_date"] = ""
+                        record["end_date"] = ""
+                    else:
+                        selected_start = (
+                            parse_metadata_date(record.get("start_date"))
+                            or available_start
+                        )
+                        selected_end = (
+                            parse_metadata_date(record.get("end_date"))
+                            or available_end
+                        )
+                        selected_start = min(
+                            max(selected_start, available_start), available_end
+                        )
+                        selected_end = min(
+                            max(selected_end, available_start), available_end
+                        )
+                        if selected_end < selected_start:
+                            selected_end = selected_start
+                        selected_range = st.date_input(
+                            "Day range",
+                            value=(selected_start, selected_end),
+                            min_value=available_start,
+                            max_value=available_end,
+                            key=f"{state_key}_{slugify(name)}_day_range_{selected_year}",
+                            format="YYYY-MM-DD",
+                        )
+                        if (
+                            isinstance(selected_range, (tuple, list))
+                            and len(selected_range) == 2
+                        ):
+                            record["start_date"] = selected_range[0].isoformat()
+                            record["end_date"] = selected_range[1].isoformat()
+                        record["single_day"] = ""
 
                 record["single_year"] = ""
                 record["start_year"] = ""
