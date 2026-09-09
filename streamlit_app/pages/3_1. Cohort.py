@@ -23,6 +23,7 @@ CUSTOM_DATASET_BBOX = (
 )
 
 CUSTOM_DATASET_BBOX_CRS = "EPSG:3857"
+MAX_UPLOADED_POINTS = 3000
 
 st.set_page_config(page_title="1. Cohort", layout="wide")
 apply_app_style()
@@ -218,7 +219,7 @@ if st.session_state["data_source"] == "upload":
         """
         <div class="iriscc-body">
             Please ensure that your file is in a supported geospatial format (GeoPackage, GeoJSON, or ZIP containing a shapefile).
-            Make sure that there is a geometry column, and a column with a unique identifier for each subject (e.g., SubjectID).
+            Make sure that there is a geometry column, and a column with a unique identifier for each subject (e.g., SubjectID). There can be up to 2000 points in the uploaded dataset.
             <br><br>
             The demonstrator currently only supports European locations. If your dataset contains points outside Europe, they'll be dropped.
         </div>
@@ -289,9 +290,16 @@ with col_load:
             if uploaded_file is None:
                 st.warning("Please upload a file first (choose 'Upload your own').")
             else:
+                st.session_state["location_gdf"] = None
+                st.session_state.pop("loaded_source", None)
                 try:
                     gdf = load_spatial_file(uploaded_file)
                     uploaded_count = len(gdf)
+                    if uploaded_count > MAX_UPLOADED_POINTS:
+                        raise ValueError(
+                            f"Uploaded datasets may contain at most {MAX_UPLOADED_POINTS} points. "
+                            f"This dataset contains {uploaded_count}."
+                        )
                     gdf = validate_gdf(gdf, bounding_box=CUSTOM_DATASET_BBOX)
                     if len(gdf) < uploaded_count:
                         st.warning(
@@ -313,11 +321,11 @@ with col_load:
 
                 except Exception as e:
                     st.error(f"Failed to load uploaded file: {e}")
-
-                st.session_state["location_gdf"] = gdf
-                st.session_state["loaded_source"] = "upload"
-                st.session_state["uploaded_file_name"] = uploaded_file.name
-                st.success(f"Loaded uploaded cohort ({len(gdf)} records)")
+                else:
+                    st.session_state["location_gdf"] = gdf
+                    st.session_state["loaded_source"] = "upload"
+                    st.session_state["uploaded_file_name"] = uploaded_file.name
+                    st.success(f"Loaded uploaded cohort ({len(gdf)} records)")
 
 with col_vis:
     if st.button("Visualize cohort on map"):

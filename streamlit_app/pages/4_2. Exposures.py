@@ -74,7 +74,7 @@ st.markdown(
     """
     <div class="iriscc-body">
         Studies show that combining exposures can help reduce double-counting in health impact assessments and support more useful burden estimates for policy-makers [<a href=\"https://www.sciencedirect.com/science/article/pii/S0160412026002965?via%3Dihub">4</a>].
-        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures, but up to 10 variables or times in total.
+        Use the selection cards below to select the exposure variables you want to link to your cohort. You can select multiple exposures, but up to 100 variables or times in total.
         <br><br>
         Watch out! Different variables are available at differnet temporal and spatial resolutions, which will affect your subsequent analysis.
         Think about your research question and the available data when making your selections. Do you want to compare exposures across years, or do you want to focus on a specific year? Do you want to look at daily temperature variations, or are you more interested in long-term trends?
@@ -687,8 +687,8 @@ with summary_col_b:
 raster_list = variable_selection_to_raster_list(
     st.session_state["weather_selection"]
 ) + variable_selection_to_raster_list(st.session_state["pollutant_selection"])
-if len(raster_list) > 10:
-    st.warning(f"""You have selected more than 10 variables or times.
+if len(raster_list) > 100:
+    st.warning(f"""You have selected more than 100 variables or times.
                This may take a long time to process in the next step.
                Reduce the number of variables or narrow
                the timeframes before continuing.""")
