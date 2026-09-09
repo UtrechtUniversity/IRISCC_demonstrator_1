@@ -53,7 +53,7 @@ cohort_ready = (
 )
 exposures_ready = (
     isinstance(raster_list, list)
-    and 0 < len(raster_list) <= 10
+    and 0 < len(raster_list) <= 100
     and all(
         isinstance(selection, dict)
         and all(
@@ -71,7 +71,7 @@ if not cohort_ready:
 
 if not exposures_ready:
     st.warning(
-        "Select at least one pollutant or temperature exposure, with no more than 10 raster times, on the Exposures page before starting the linking procedure."
+        "Select at least one pollutant or temperature exposure, with no more than 100 time granules, on the Exposures page before starting the linking procedure."
     )
 
 if exposures_ready:
