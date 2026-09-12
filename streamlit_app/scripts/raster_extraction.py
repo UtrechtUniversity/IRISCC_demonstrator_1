@@ -108,8 +108,6 @@ def link_to_raster(selected_variable_dict, points_dataframe, progress_callback=N
     total_start = perf_counter()
     validation_start = perf_counter()
     print("[link_to_raster] Starting raster link.")
-    print(f"[link_to_raster] Selection: {selected_variable_dict}")
-    print(f"[link_to_raster] Input points: {len(points_dataframe)}")
     if not isinstance(selected_variable_dict, dict):
         raise TypeError("Each raster selection must be a dictionary.")
     required_keys = {"variable", "geoserver_name", "time", "pixel_size"}
@@ -148,16 +146,10 @@ def link_to_raster(selected_variable_dict, points_dataframe, progress_callback=N
         f"[link_to_raster] Raster: variable={variable_name}, "
         f"GeoServer name={geoserver_name}, time={timestamp}, pixel size={pixel_size}"
     )
-    print(f"[link_to_raster] WMS TIME parameter: {wms_timestamp}")
-    print(f"[link_to_raster] Input CRS: {points_dataframe.crs}")
-    print(f"[link_to_raster] Reprojecting points to {TARGET_CRS}.")
     points_in_wms_crs = points_dataframe.to_crs(TARGET_CRS)
     layer_name = f"{WMS_WORKSPACE}:{geoserver_name}"
     values = [None] * len(points_dataframe)
     failures = []
-    print(f"[link_to_raster] WMS layer: {layer_name}")
-    print(f"[link_to_raster] Output column: {output_column}")
-    print(f"[link_to_raster] Validated in {perf_counter() - validation_start:.3f}s")
     print(f"Timing: validation = {perf_counter() - validation_start:.3f}s")
 
     requests_to_make = []
@@ -206,7 +198,6 @@ def link_to_raster(selected_variable_dict, points_dataframe, progress_callback=N
     )
     linked_points = points_dataframe.copy()
     linked_points[output_column] = values
-    print(f"[link_to_raster] Final GeoDataFrame shape: {linked_points.shape}")
     print(f"Timing: total link_to_raster = {perf_counter() - total_start:.3f}s")
     if return_failures:
         return linked_points, failures
@@ -299,26 +290,3 @@ def create_linked_dataframe(
     if return_failures:
         return linked_gdf, failures
     return linked_gdf
-
-
-
-if __name__ == "__main__":
-    input_file = r"C:\Users\5298954\Documents\Github_Repos\IRISCC_demonstrator_1\streamlit_app\Resources\cardiovascularCohort.gpkg"
-    selected_variable_dict = [
-        {
-            "variable": "NO2B25_AAV",
-            "geoserver_name": "NO2B25_AAV",
-            "time": "2023",
-            "pixel_size": 25,
-        }
-    ]
-
-    points_dataframe = gpd.read_file(input_file)
-
-    gdf = create_linked_dataframe(selected_variable_dict, points_dataframe)
-
-    print(gdf)
-
-
-# # This should work as before, but without the multiprocessing.
-# # I need to do a datacamp on multiprocessing.

@@ -176,126 +176,212 @@ if linked_df_for_download is not None:
 
 code_expander = st.expander("Want to see the code used in the linking process?")
 with code_expander:
-    st.write("""
-    ```python
-        def link_to_raster(selected_variable_dict, points_dataframe, wcs=None):
-            total_start = perf_counter()
+    st.write(
+        '''
+        ```python
+            def _format_wms_time(timestamp):
+                if len(timestamp) == 10 and timestamp[4] == "-" and timestamp[7] == "-":
+                    return f"{timestamp}T00:00:00.000Z"
+                return timestamp
 
-            validation_start = perf_counter()
-            if not isinstance(selected_variable_dict, dict):
-                raise TypeError("Each raster selection must be a dictionary.")
 
-            required_keys = {"variable", "geoserver_name", "time", "pixel_size"}
-            missing_keys = required_keys.difference(selected_variable_dict)
-            if missing_keys:
-                raise ValueError(f"Raster selection is missing: {sorted(missing_keys)}")
-            if not isinstance(points_dataframe, gpd.GeoDataFrame):
-                raise TypeError("points_dataframe must be a GeoDataFrame.")
-            if points_dataframe.empty:
-                raise ValueError("points_dataframe contains no points.")
-            if points_dataframe.crs is None:
-                raise ValueError("points_dataframe has no CRS defined.")
-            if points_dataframe.geometry.isna().any() or not points_dataframe.geometry.geom_type.eq("Point").all():
-                raise ValueError("points_dataframe must contain only non-null Point geometries.")
-            print(f"Timing: validation = {perf_counter() - validation_start:.3f}s")
+            async def _fetch_gray_index(
+                session,
+                semaphore,
+                position,
+                original_index,
+                params,
+                output_column,
+                total_points,
+            ):
+                async with semaphore:
+                    try:
+                        async with session.get(WMS_URL, params=params) as response:
+                            response.raise_for_status()
+                            data = await response.json(content_type=None)
+                            features = data.get("features", [])
+                            if features:
+                                properties = features[0].get("properties", {})
+                                value = properties.get("GRAY_INDEX")
+                                return position, value, None
+                            return position, None, None
+                    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, TypeError, AttributeError) as error:
+                        return position, None, {
+                            "variable": output_column,
+                            "point": position,
+                            "error": str(error),
+                        }
 
-            variable_name = str(selected_variable_dict["variable"]).strip()
-            geoserver_name = str(selected_variable_dict["geoserver_name"]).strip()
-            timestamp = str(selected_variable_dict["time"]).strip()
-            pixel_size = float(selected_variable_dict["pixel_size"])
-            if not variable_name or not geoserver_name or not timestamp:
-                raise ValueError("Raster variable, GeoServer name, and time must be non-empty.")
 
-            reprojection_start = perf_counter()
-            original_crs = points_dataframe.crs
-            points_in_raster_crs = points_dataframe.to_crs(TARGET_CRS)
-            print(f"Timing: CRS conversion = {perf_counter() - reprojection_start:.3f}s")
+            async def _fetch_raster_values(requests_to_make, output_column, progress_callback):
+                values = [None] * len(requests_to_make)
+                failures = []
+                semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+                timeout = aiohttp.ClientTimeout(total=WMS_TIMEOUT)
+                connector = aiohttp.TCPConnector(limit=MAX_CONCURRENT_REQUESTS)
 
-            coverage_id = f"EXPANSE_map:{geoserver_name}"
+                async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+                    tasks = [
+                        asyncio.create_task(
+                            _fetch_gray_index(
+                                session,
+                                semaphore,
+                                position,
+                                original_index,
+                                params,
+                                output_column,
+                                len(requests_to_make),
+                            )
+                        )
+                        for position, (original_index, params) in enumerate(requests_to_make)
+                    ]
+                    for task in asyncio.as_completed(tasks):
+                        position, value, failure = await task
+                        values[position] = value
+                        if failure:
+                            failures.append(failure)
+                        if progress_callback:
+                            progress_callback(
+                                "progress",
+                                f"Processed point {position + 1} of {len(requests_to_make)} for {output_column}",
+                            )
+                return values, failures
+            
 
-            bounds_start = perf_counter()
-            minx, miny, maxx, maxy = points_in_raster_crs.total_bounds
-            if not all(math.isfinite(value) for value in (minx, miny, maxx, maxy)):
-                raise ValueError("Point coordinates must be finite.")
-            bbox = (
-                float(minx - DEFAULT_BUFFER),
-                float(miny - DEFAULT_BUFFER),
-                float(maxx + DEFAULT_BUFFER),
-                float(maxy + DEFAULT_BUFFER),
-            )
-            print(f"Timing: bounds and request preparation = {perf_counter() - bounds_start:.3f}s")
+            def link_to_raster(selected_variable_dict, points_dataframe, progress_callback=None, return_failures=False):
+                if not isinstance(selected_variable_dict, dict):
+                    raise TypeError("Each raster selection must be a dictionary.")
+                required_keys = {"variable", "geoserver_name", "time", "pixel_size"}
+                missing_keys = required_keys.difference(selected_variable_dict)
+                if missing_keys:
+                    raise ValueError(f"Raster selection is missing: {sorted(missing_keys)}")
+                if not isinstance(points_dataframe, gpd.GeoDataFrame):
+                    raise TypeError("points_dataframe must be a GeoDataFrame.")
+                if points_dataframe.empty:
+                    raise ValueError("points_dataframe contains no points.")
+                if points_dataframe.crs is None:
+                    raise ValueError("points_dataframe has no CRS defined.")
+                if (
+                    points_dataframe.geometry.isna().any()
+                    or not points_dataframe.geometry.geom_type.eq("Point").all()
+                ):
+                    raise ValueError(
+                        "points_dataframe must contain only non-null Point geometries."
+                    )
 
-            print(f"Coverage id: {coverage_id}", f"Here are the bounding box coordinates: {bbox}", f"Here is the timestamp: {timestamp}")
+                variable_name = str(selected_variable_dict["variable"]).strip()
+                geoserver_name = str(selected_variable_dict["geoserver_name"]).strip()
+                timestamp = str(selected_variable_dict["time"]).strip()
+                try:
+                    pixel_size = float(selected_variable_dict["pixel_size"])
+                except (TypeError, ValueError):
+                    raise ValueError("Raster pixel_size must be a positive number.")
+                if not variable_name or not geoserver_name or not timestamp:
+                    raise ValueError("Raster variable, GeoServer name, and time must be non-empty.")
+                if pixel_size <= 0:
+                    raise ValueError("Raster pixel_size must be a positive number.")
 
-            request_start = perf_counter()
-            try:
-                coverage = wcs.getCoverage(
-                    identifier=coverage_id,
-                    bbox=bbox,
-                    crs=TARGET_CRS,
-                    format="GeoTIFF",
-                    time=[timestamp],
-                    resx=pixel_size,
-                    resy=pixel_size,
+                output_column = f"{variable_name}_{timestamp}"
+                wms_timestamp = _format_wms_time(timestamp)
+
+                points_in_wms_crs = points_dataframe.to_crs(TARGET_CRS)
+                layer_name = f"{WMS_WORKSPACE}:{geoserver_name}"
+                values = [None] * len(points_dataframe)
+                failures = []
+
+                requests_to_make = []
+                for point_index, point in enumerate(points_in_wms_crs.geometry):
+                    x = float(point.x)
+                    y = float(point.y)
+                    half_pixel = pixel_size / 2
+                    params = {
+                        "SERVICE": "WMS",
+                        "VERSION": "1.1.1",
+                        "REQUEST": "GetFeatureInfo",
+                        "LAYERS": layer_name,
+                        "QUERY_LAYERS": layer_name,
+                        "STYLES": "",
+                        "SRS": TARGET_CRS,
+                        "BBOX": f"{x - half_pixel},{y - half_pixel},{x + half_pixel},{y + half_pixel}",
+                        "WIDTH": 1,
+                        "HEIGHT": 1,
+                        "X": 0,
+                        "Y": 0,
+                        "INFO_FORMAT": "application/json",
+                        "FEATURE_COUNT": 1,
+                        "TIME": wms_timestamp,
+                    }
+                    requests_to_make.append((points_dataframe.index[point_index], params))
+
+                if len(requests_to_make) > MAX_REQUESTS:
+                    requests_to_make = requests_to_make[:MAX_REQUESTS]
+
+                requested_values, request_failures = asyncio.run(
+                    _fetch_raster_values(requests_to_make, output_column, progress_callback)
                 )
-            except Exception as e:
-                raise RuntimeError(f"Failed to retrieve coverage from GeoServer: {e}")
-            print(f"Timing: getCoverage request setup/response = {perf_counter() - request_start:.3f}s")
+                values[: len(requested_values)] = requested_values
+                failures.extend(request_failures)
 
-            read_start = perf_counter()
-            data = coverage.read()
-            print(f"Timing: coverage.read() = {perf_counter() - read_start:.3f}s ({len(data) / 1024 / 1024:.2f} MiB)")
-            # print(data[:300])
-
-            raster_start = perf_counter()
-            with rasterio.MemoryFile(data) as memfile:
-                with memfile.open() as dataset:
-                    if dataset.count != 1:
-                        raise ValueError(f"Expected 1 band, got {dataset.count} — check timestamp input.")
-
-                    coord_list = list(zip(points_in_raster_crs.geometry.x, points_in_raster_crs.geometry.y))
-                    sampled_values = []
-                    for sample in dataset.sample(coord_list, masked=True):
-                        value = sample[0]
-                        sampled_values.append(None if value is None or getattr(value, "mask", False) else round(float(value), 2))
-            print(f"Timing: GeoTIFF open and point sampling = {perf_counter() - raster_start:.3f}s ({len(sampled_values)} points)")
-
-            linked_points = points_dataframe.copy()
-            linked_points[variable_name] = sampled_values
-            assert linked_points.crs == original_crs
-            print(f"Timing: total link_to_raster = {perf_counter() - total_start:.3f}s")
-            return linked_points
+                linked_points = points_dataframe.copy()
+                linked_points[output_column] = values
+                if return_failures:
+                    return linked_points, failures
+                return linked_points
 
 
-        def create_linked_dataframe(selected_variable_dict, points_dataframe):
-            if not isinstance(selected_variable_dict, list) or not selected_variable_dict:
-                raise ValueError("selected_variable_dict must be a non-empty list.")
+            def create_linked_dataframe(
+                selected_variable_dict,
+                points_dataframe,
+                return_failures=False,
+                progress_callback=None,
+            ):
+                if not isinstance(selected_variable_dict, list) or not selected_variable_dict:
+                    raise ValueError("selected_variable_dict must be a non-empty list.")
 
-            if not all(isinstance(selection, dict) for selection in selected_variable_dict):
-                raise TypeError("Each raster selection must be a dictionary.")
+                if not all(isinstance(selection, dict) for selection in selected_variable_dict):
+                    raise TypeError("Each raster selection must be a dictionary.")
 
-            variable_names = [str(selection.get("variable", "")).strip() for selection in selected_variable_dict]
-            if not all(variable_names):
-                raise ValueError("Each raster selection must have a non-empty variable name.")
-            if len(variable_names) != len(set(variable_names)):
-                raise ValueError("Each raster selection must have a unique variable name.")
+                output_columns = [
+                    f"{str(selection.get('variable', '')).strip()}_{str(selection.get('time', '')).strip()}"
+                    for selection in selected_variable_dict
+                ]
+                if any(
+                    column == "_" or column.startswith("_") or column.endswith("_")
+                    for column in output_columns
+                ):
+                    raise ValueError(
+                        "Each raster selection must have a non-empty variable name and timestamp."
+                    )
+                if len(output_columns) != len(set(output_columns)):
+                    raise ValueError("Each variable and timestamp combination must be unique.")
 
-            total_start = perf_counter()
-            linked_gdf = points_dataframe.copy()
-            wcs = WebCoverageService(WCS_URL, version="1.0.0")
-            print(f"Timing: WCS client creation = {perf_counter() - total_start:.3f}s")
-            for variable_dict in selected_variable_dict:
-                print(f"Extracting values from raster: {variable_dict['geoserver_name']}")
-                extracted_values = link_to_raster(variable_dict, linked_gdf, wcs=wcs)
-                variable_name = str(variable_dict["variable"]).strip()
-                linked_gdf[variable_name] = extracted_values[variable_name]
-
-            print(f"Timing: total create_linked_dataframe = {perf_counter() - total_start:.3f}s")
-            return linked_gdf
-
-        linked_df, linking_failures = create_linked_dataframe(
-        selected_variable_dict=raster_list,
-        points_dataframe=location_gdf,
-        return_failures=True,
-        )
-    """)
+                total_start = perf_counter()
+                linked_gdf = points_dataframe.copy()
+                failures = []
+                for variable_dict in selected_variable_dict:
+                    variable_name = str(variable_dict["variable"]).strip()
+                    timestamp = str(variable_dict["time"]).strip()
+                    output_column = f"{variable_name}_{timestamp}"
+                    try:
+                        if progress_callback:
+                            progress_callback("started", output_column)
+                        extracted_values, tile_failures = link_to_raster(
+                            variable_dict,
+                            linked_gdf,
+                            progress_callback=progress_callback,
+                            return_failures=True,
+                        )
+                        linked_gdf[output_column] = extracted_values[output_column]
+                        failures.extend(tile_failures)
+                        if progress_callback:
+                            progress_callback("completed", output_column)
+                    except Exception as error:
+                        linked_gdf[output_column] = [None] * len(linked_gdf)
+                        failures.append({"variable": output_column, "error": str(error)})
+                        if progress_callback:
+                            progress_callback("failed", output_column)
+                if return_failures:
+                    return linked_gdf, failures
+                return linked_gdf
+                '''
+            )
