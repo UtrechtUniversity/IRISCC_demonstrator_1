@@ -289,8 +289,8 @@ weather_options = [
 
 variable_metadata = {
     "Annual PM10": {
-        "spatial_resolution": "25x25m",
-        "pixel_size": 25,
+        "spatial_resolution": "100x100m",
+        "pixel_size": 100,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
@@ -301,8 +301,8 @@ variable_metadata = {
         "geoserver_name": "P10B25_AAV",
     },
     "Annual PM2.5": {
-        "spatial_resolution": "25x25m",
-        "pixel_size": 25,
+        "spatial_resolution": "100x100m",
+        "pixel_size": 100,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
@@ -313,8 +313,8 @@ variable_metadata = {
         "geoserver_name": "P25B25_AAV",
     },
     "Annual O3": {
-        "spatial_resolution": "25x25m",
-        "pixel_size": 25,
+        "spatial_resolution": "100x100m",
+        "pixel_size": 100,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",
@@ -325,8 +325,8 @@ variable_metadata = {
         "geoserver_name": "OZOB25_AAV",
     },
     "Annual NO2": {
-        "spatial_resolution": "25x25m",
-        "pixel_size": 25,
+        "spatial_resolution": "100x100m",
+        "pixel_size": 100,
         "temporal_mode": "yearly",
         "start_time": "2019",
         "end_time": "2023",

@@ -91,14 +91,13 @@ def get_data():
     return st.session_state.get("linked_df")
 
 
-@st.cache_data
-def convert_for_download(_df):
-    if _df is None:
+def convert_for_download(df):
+    if df is None:
         return b""
     # If geodataframe, drop geometry column and convert to pandas dataframe
-    if isinstance(_df, gpd.GeoDataFrame):
-        _df = _df.drop(columns="geometry").copy()
-    return _df.to_csv(index=False).encode("utf-8")
+    if isinstance(df, gpd.GeoDataFrame):
+        df = df.drop(columns="geometry").copy()
+    return df.to_csv(index=False).encode("utf-8")
 
 
 if run:
