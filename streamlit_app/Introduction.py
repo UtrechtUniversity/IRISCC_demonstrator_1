@@ -23,7 +23,7 @@ with col2:
 st.markdown(
     """
     <div class="iriscc-page-header">
-        <h2 class="iriscc-page-title">Risk on Human Health in Urban Areas during Heatwaves Associated with Deteriorated Air Quality</h2>
+        <h2 class="iriscc-page-title">Risk to Human Health in Urban Areas during Heatwaves Associated with Deteriorated Air Quality</h2>
 
     </div>
     """,
